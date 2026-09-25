@@ -1,6 +1,9 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/cpmeyhn5897/public_html/
-    - /bin/rsync -av --delete --exclude='.git' --exclude='.env' --exclude='storage' --exclude='*.zip' ./ $DEPLOYPATH
+    - export DEPLOYPATH=/home/cpmeyhn5897/public_html
+    - /bin/cp -rf * $DEPLOYPATH/
+    - /bin/cp -rf .htaccess $DEPLOYPATH/
     - /bin/chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
+    - /usr/local/bin/php $DEPLOYPATH/artisan optimize:clear || /usr/bin/php $DEPLOYPATH/artisan optimize:clear || true
+    - /usr/local/bin/php $DEPLOYPATH/artisan migrate --force || /usr/bin/php $DEPLOYPATH/artisan migrate --force || true

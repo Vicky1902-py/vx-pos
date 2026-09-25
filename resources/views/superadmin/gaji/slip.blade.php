@@ -1,6 +1,6 @@
 @php
     $logoPath = ($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null;
-    $namaToko = $pengaturan->nama_toko ?? 'Vx-Pos';
+    $namaToko = $pengaturan->nama_toko ?? 'VxPOS';
     $alamatToko = $pengaturan->alamat ?? 'Alamat Belum Diatur';
     $telpToko = $pengaturan->telepon ?? '-';
 @endphp
@@ -95,7 +95,7 @@
             </tr>
         </table>
 
-        <p style="font-size: 11px; font-style: italic;">Dicetak otomatis oleh Sistem pada: {{ \Carbon\Carbon::now()->format('d-m-Y H:i:s') }}</p>
+        <p style="font-size: 11px; font-style: italic;">Dicetak otomatis oleh Sistem VxPOS &bull; Hak Cipta by. Vicky Koroh pada: {{ \Carbon\Carbon::now()->format('d-m-Y H:i:s') }}</p>
 
         <div class="footer">
             <div class="ttd-box">

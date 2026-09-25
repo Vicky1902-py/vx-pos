@@ -101,16 +101,16 @@ return new class extends Migration
             });
         }
 
-        // 11. Otomatis Migrasikan Toko Eksisting (Vx-Pos) sebagai Toko Utama ID #1
+        // 11. Otomatis Migrasikan Toko Eksisting (VxPOS) sebagai Toko Utama ID #1
         $tokoCount = DB::table('toko')->count();
         if ($tokoCount === 0) {
             $existingPengaturan = DB::table('pengaturan_toko')->first();
-            $namaToko = $existingPengaturan->nama_toko ?? 'Vx-Pos';
+            $namaToko = $existingPengaturan->nama_toko ?? 'VxPOS';
             $logo = $existingPengaturan->logo ?? null;
 
             $tokoId = DB::table('toko')->insertGetId([
                 'nama_toko'  => $namaToko,
-                'slug'       => 'vx-pos',
+                'slug'       => 'vxpos',
                 'alamat'     => 'Jl. Raya Otomotif No. 1',
                 'no_telp'    => '08123456789',
                 'logo'       => $logo,

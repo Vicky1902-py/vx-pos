@@ -15,7 +15,7 @@
 
     $logoPath = ($tokoAktif && !empty($tokoAktif->logo)) ? asset('uploads/logo/' . $tokoAktif->logo) 
                 : (($pengaturan && !empty($pengaturan->logo)) ? asset('uploads/logo/' . $pengaturan->logo) : null);
-    $namaToko = $tokoAktif->nama_toko ?? ($pengaturan->nama_toko ?? 'Vx-Pos');
+    $namaToko = $tokoAktif->nama_toko ?? ($pengaturan->nama_toko ?? 'VxPOS');
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -74,7 +74,7 @@
                     <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-md font-bold text-white text-xs">
                         VX
                     </div>
-                    <span class="text-xl font-bold text-gray-800 tracking-tight">VX-<span class="text-indigo-600">POS</span></span>
+                    <span class="text-xl font-bold text-gray-800 tracking-tight">Vx<span class="text-indigo-600">POS</span></span>
                 @endif
             </div>
             
@@ -264,7 +264,7 @@
         
         <!-- Footer Hak Cipta -->
         <footer class="mt-8 pt-4 pb-2 border-t border-gray-200 text-center text-xs lg:text-sm text-gray-500 font-medium">
-            Design by <span class="text-indigo-600 font-bold">Vicky</span> | Copyright &copy; 2026 <a href="https://vxai.online" target="_blank" class="hover:text-indigo-600 hover:underline transition-colors">vxai.online</a>
+            VxPOS Enterprise Multi-Store &bull; Hak Cipta by. Vicky Koroh &bull; &copy; {{ date('Y') }}
         </footer>
     </div>
 

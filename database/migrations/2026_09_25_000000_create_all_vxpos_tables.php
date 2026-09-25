@@ -75,7 +75,7 @@ return new class extends Migration
             Schema::create('pengaturan_toko', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('toko_id')->nullable()->index();
-                $table->string('nama_toko')->default('Vx-Pos');
+                $table->string('nama_toko')->default('VxPOS');
                 $table->string('logo')->nullable();
                 $table->text('alamat')->nullable();
                 $table->string('telepon', 50)->nullable();
@@ -212,12 +212,12 @@ return new class extends Migration
             });
         }
 
-        // 13. SEED DATA AWAL: Toko Utama Vx-Pos, Pengaturan, & Akun Superadmin
+        // 13. SEED DATA AWAL: Toko Utama VxPOS, Pengaturan, & Akun Superadmin
         $tokoCount = DB::table('toko')->count();
         if ($tokoCount === 0) {
             $tokoId = DB::table('toko')->insertGetId([
-                'nama_toko'  => 'Vx-Pos',
-                'slug'       => 'vx-pos',
+                'nama_toko'  => 'VxPOS',
+                'slug'       => 'vxpos',
                 'alamat'     => 'Jl. Sistem Modern No. 1',
                 'no_telp'    => '08123456789',
                 'paket'      => 'enterprise',
@@ -229,7 +229,7 @@ return new class extends Migration
 
             DB::table('pengaturan_toko')->insert([
                 'toko_id'    => $tokoId,
-                'nama_toko'  => 'Vx-Pos',
+                'nama_toko'  => 'VxPOS',
                 'alamat'     => 'Jl. Sistem Modern No. 1',
                 'telepon'    => '08123456789',
                 'created_at' => now(),
@@ -247,7 +247,7 @@ return new class extends Migration
             if (!$adminExists) {
                 DB::table('users')->insert([
                     'toko_id'           => $tokoId,
-                    'nama'              => 'Super Admin Vx-Pos',
+                    'nama'              => 'Super Admin VxPOS',
                     'username'          => 'admin',
                     'password'          => Hash::make('admin123'),
                     'role'              => 'superadmin',

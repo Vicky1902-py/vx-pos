@@ -6,7 +6,7 @@
         }
     } catch (\Throwable $e) {}
     $logoPath = ($pengaturan && !empty($pengaturan->logo)) ? asset('uploads/logo/' . $pengaturan->logo) : null;
-    $namaToko = $pengaturan->nama_toko ?? 'Vx-Pos';
+    $namaToko = $pengaturan->nama_toko ?? 'VxPOS';
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -43,7 +43,7 @@
                 <div class="w-12 h-12 bg-gradient-to-tr from-[#7367f0] to-[#9e95f5] rounded-xl flex items-center justify-center shadow-lg shadow-[#7367f0]/30 text-white font-black text-xl">
                     VX
                 </div>
-                <span class="text-3xl font-black text-heading tracking-tight">VX-<span class="text-[#7367f0]">POS</span></span>
+                <span class="text-3xl font-black text-heading tracking-tight">Vx<span class="text-[#7367f0]">POS</span></span>
             @endif
         </div>
 
@@ -90,7 +90,7 @@
                     <div class="w-10 h-10 bg-gradient-to-tr from-[#7367f0] to-[#9e95f5] rounded-xl flex items-center justify-center shadow-md shadow-[#7367f0]/30 text-white font-black text-lg">
                         VX
                     </div>
-                    <span class="text-2xl font-black text-heading tracking-tight">VX-<span class="text-[#7367f0]">POS</span></span>
+                    <span class="text-2xl font-black text-heading tracking-tight">Vx<span class="text-[#7367f0]">POS</span></span>
                 @endif
             </div>
 
@@ -146,7 +146,7 @@
             </form>
 
             <p class="text-center text-muted text-xs mt-8">
-                &copy; {{ date('Y') }} {{ $namaToko }}. Multi-Store Point of Sale Platform.
+                &copy; {{ date('Y') }} {{ $namaToko }}. Hak Cipta by. Vicky Koroh.
             </p>
         </div>
     </div>

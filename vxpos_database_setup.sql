@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `pengaturan_toko` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `toko_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `nama_toko` varchar(255) NOT NULL DEFAULT 'Vx-Pos',
+  `nama_toko` varchar(255) NOT NULL DEFAULT 'VxPOS',
   `logo` varchar(255) DEFAULT NULL,
   `alamat` text DEFAULT NULL,
   `telepon` varchar(50) DEFAULT NULL,
@@ -248,20 +248,20 @@ CREATE TABLE IF NOT EXISTS `migrations` (
 -- 1. Toko Utama
 INSERT INTO `toko` (`id`, `nama_toko`, `slug`, `alamat`, `no_telp`, `logo`, `paket`, `status`, `expired_at`, `created_at`, `updated_at`)
 VALUES
-(1, 'Vx-Pos', 'vx-pos', 'Jl. Sistem Modern No. 1', '08123456789', NULL, 'enterprise', 'aktif', '2036-12-31', NOW(), NOW())
-ON DUPLICATE KEY UPDATE `nama_toko` = 'Vx-Pos';
+(1, 'VxPOS', 'vxpos', 'Jl. Sistem Modern No. 1', '08123456789', NULL, 'enterprise', 'aktif', '2036-12-31', NOW(), NOW())
+ON DUPLICATE KEY UPDATE `nama_toko` = 'VxPOS';
 
 -- 2. Pengaturan Toko Utama
 INSERT INTO `pengaturan_toko` (`id`, `toko_id`, `nama_toko`, `logo`, `alamat`, `telepon`, `email`, `created_at`, `updated_at`)
 VALUES
-(1, 1, 'Vx-Pos', NULL, 'Jl. Sistem Modern No. 1', '08123456789', 'admin@vxpos.id', NOW(), NOW())
-ON DUPLICATE KEY UPDATE `nama_toko` = 'Vx-Pos';
+(1, 1, 'VxPOS', NULL, 'Jl. Sistem Modern No. 1', '08123456789', 'admin@vxpos.id', NOW(), NOW())
+ON DUPLICATE KEY UPDATE `nama_toko` = 'VxPOS';
 
 -- 3. Akun Super Administrator (Username: admin | Password: admin123)
 -- Hash bcrypt '$2y$12$cLEVpnJwIrzVQtpeBjj4g.a.W1zMquiAfRkdOymCHJI68IWJXrT9e' = admin123
 INSERT INTO `users` (`id`, `toko_id`, `nama`, `username`, `password`, `role`, `is_platform_admin`, `status`, `hak_akses`, `remember_token`, `created_at`, `updated_at`)
 VALUES
-(1, 1, 'Super Admin Vx-Pos', 'admin', '$2y$12$cLEVpnJwIrzVQtpeBjj4g.a.W1zMquiAfRkdOymCHJI68IWJXrT9e', 'superadmin', 1, 'aktif', '["master_barang","manajemen_harga","transaksi_sales","stok_gudang","validasi_kasir","laporan_penjualan","kelola_bonus","manajemen_user"]', NULL, NOW(), NOW())
+(1, 1, 'Super Admin VxPOS', 'admin', '$2y$12$cLEVpnJwIrzVQtpeBjj4g.a.W1zMquiAfRkdOymCHJI68IWJXrT9e', 'superadmin', 1, 'aktif', '["master_barang","manajemen_harga","transaksi_sales","stok_gudang","validasi_kasir","laporan_penjualan","kelola_bonus","manajemen_user"]', NULL, NOW(), NOW())
 ON DUPLICATE KEY UPDATE `username` = 'admin';
 
 -- 4. Catat Riwayat Migrasi Laravel
@@ -272,6 +272,11 @@ INSERT INTO `migrations` (`migration`, `batch`) VALUES
 ('2026_09_25_000000_create_all_vxpos_tables', 1),
 ('2026_09_25_000001_create_multi_toko_and_tenant_support', 1)
 ON DUPLICATE KEY UPDATE `batch` = 1;
+
+-- 5. Bersihkan nama lama jika ada data hasil restore/import lama
+UPDATE `toko` SET `nama_toko` = 'VxPOS' WHERE `nama_toko` LIKE '%Chanada%' OR `nama_toko` LIKE '%Vx-Pos%';
+UPDATE `pengaturan_toko` SET `nama_toko` = 'VxPOS' WHERE `nama_toko` LIKE '%Chanada%' OR `nama_toko` LIKE '%Vx-Pos%';
+UPDATE `users` SET `nama` = 'Super Admin VxPOS' WHERE `nama` LIKE '%Chanada%' OR `nama` LIKE '%Vx-Pos%';
 
 SET FOREIGN_KEY_CHECKS=1;
 COMMIT;

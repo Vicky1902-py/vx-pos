@@ -75,11 +75,11 @@
             @if(isset($pengaturan->logo) && $pengaturan->logo)
                 <img src="{{ asset('uploads/logo/' . $pengaturan->logo) }}" alt="Logo">
             @else
-                <h1>VX-POS<br>POINT OF SALE</h1>
+                <h1>VXPOS<br>POINT OF SALE</h1>
             @endif
         </div>
         <div class="header-text">
-            <strong>{{ $pengaturan->nama_toko ?? 'VX-POS' }}</strong>
+            <strong>{{ $pengaturan->nama_toko ?? 'VxPOS' }}</strong>
             Alamat: {{ $pengaturan->alamat ?? '-' }}<br>
             Telp: {{ $pengaturan->telepon ?? '-' }} | Email: {{ $pengaturan->email ?? '-' }}
         </div>
@@ -228,6 +228,10 @@
     </div>
 </div>
 @endif
+
+<div style="margin: 15px auto; text-align: center; font-size: 10px; color: #888;">
+    VxPOS Point of Sale &bull; Hak Cipta by. Vicky Koroh
+</div>
 
 <button class="btn-print" onclick="window.print()">CETAK NOTA</button>
 

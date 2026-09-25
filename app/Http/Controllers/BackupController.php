@@ -22,7 +22,7 @@ class BackupController extends Controller
         $tables = DB::select('SHOW TABLES');
         
         $sql = "-- ===================================================\n";
-        $sql .= "-- Sistem Backup Database: Vx-Pos\n";
+        $sql .= "-- Sistem Backup Database: VxPOS\n";
         $sql .= "-- Waktu Backup: " . Carbon::now()->format('d M Y - H:i:s') . "\n";
         $sql .= "-- ===================================================\n\n";
         
@@ -69,7 +69,7 @@ class BackupController extends Controller
         $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
         // Penamaan file dinamis berdasarkan waktu
-        $fileName = 'Backup_VxPos_' . Carbon::now()->format('Y-m-d_H-i') . '.sql';
+        $fileName = 'Backup_VxPOS_' . Carbon::now()->format('Y-m-d_H-i') . '.sql';
 
         // Lempar output secara langsung sebagai file unduhan ke browser
         return response($sql)

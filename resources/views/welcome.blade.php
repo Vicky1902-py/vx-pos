@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VX-POS | Sistem Kasir & ERP Terpadu Multi-Toko</title>
+    <title>VxPOS | Sistem Kasir & ERP Terpadu Multi-Toko</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
     
@@ -58,7 +58,7 @@
                     <i class="fa-solid fa-bolt-lightning text-lg"></i>
                 </div>
                 <div>
-                    <span class="text-xl font-extrabold tracking-tight text-slate-900">VX<span class="text-brand-600">POS</span></span>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">Vx<span class="text-brand-600">POS</span></span>
                     <span class="hidden sm:inline-block text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 ml-2 bg-indigo-50 text-brand-600 rounded-full border border-indigo-100">Multi-Store</span>
                 </div>
             </a>
@@ -166,7 +166,7 @@
                             </div>
                             <div class="space-y-2 text-xs">
                                 <div class="flex items-center justify-between py-1.5 text-slate-300">
-                                    <span class="font-semibold text-white flex items-center gap-2"><i class="fa-solid fa-shop text-brand-400"></i> Toko Pusat - Vx-Pos Flagship</span>
+                                    <span class="font-semibold text-white flex items-center gap-2"><i class="fa-solid fa-shop text-brand-400"></i> Toko Pusat - VxPOS Flagship</span>
                                     <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">Aktif Melayani</span>
                                     <span>Rp 14.850.000</span>
                                     <span class="text-indigo-400 hover:underline cursor-pointer">Buka Kasir &rarr;</span>
@@ -452,14 +452,14 @@
                     <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
                         <i class="fa-solid fa-bolt-lightning text-sm"></i>
                     </div>
-                    <span class="text-xl font-extrabold text-white">VX<span class="text-brand-500">POS</span></span>
+                    <span class="text-xl font-extrabold text-white">Vx<span class="text-brand-500">POS</span></span>
                 </div>
                 <p class="text-xs text-slate-500 text-center md:text-right">
                     Solusi POS & Manajemen Multi-Toko Modern &bull; Powered by Laravel 11
                 </p>
             </div>
             <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-                <p>&copy; 2026 VX-POS Enterprise Multi-Store Platform. Hak Cipta Dilindungi.</p>
+                <p>&copy; 2026 VxPOS Multi-Store Platform. Hak Cipta by. Vicky Koroh.</p>
                 <div class="flex gap-6">
                     <a href="{{ route('login') }}" class="hover:text-white transition-colors">Login Toko</a>
                     <a href="#fitur" class="hover:text-white transition-colors">Fitur</a>

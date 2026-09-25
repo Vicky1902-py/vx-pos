@@ -135,7 +135,7 @@ class LaporanController extends Controller
         }
         
         $toko = TenantManager::getActiveToko();
-        $namaToko = $toko->nama_toko ?? 'Vx-Pos';
+        $namaToko = $toko->nama_toko ?? 'VxPOS';
 
         return view('superadmin.laporan.excel', compact(
             'laporan', 'startDate', 'endDate', 'status', 

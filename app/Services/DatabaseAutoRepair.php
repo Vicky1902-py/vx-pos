@@ -142,11 +142,17 @@ class DatabaseAutoRepair
             if (!Schema::hasColumn('users', 'toko_id')) {
                 $table->unsignedBigInteger('toko_id')->nullable()->default(1)->after('id')->index();
             }
-            if (!Schema::hasColumn('users', 'nama') && Schema::hasColumn('users', 'name')) {
+            if (!Schema::hasColumn('users', 'nama')) {
                 $table->string('nama')->nullable()->after('toko_id');
+            }
+            if (!Schema::hasColumn('users', 'name')) {
+                $table->string('name', 191)->nullable()->after('nama');
             }
             if (!Schema::hasColumn('users', 'username')) {
                 $table->string('username', 50)->nullable()->after('nama');
+            }
+            if (!Schema::hasColumn('users', 'email')) {
+                $table->string('email', 191)->nullable()->after('username');
             }
             if (!Schema::hasColumn('users', 'role')) {
                 $table->string('role', 30)->default('admin')->after('password');

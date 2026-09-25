@@ -37,26 +37,38 @@ class AuthController extends Controller
         $password = (string) $request->input('password');
         $lowerInput = strtolower($loginInput);
 
+        $hasEmailColumn = Schema::hasTable('users') && Schema::hasColumn('users', 'email');
+
         // 1. Cek apakah ada record user berdasarkan username atau email
-        $user = User::where('username', $loginInput)
-            ->orWhere('email', $loginInput)
-            ->orWhereRaw('LOWER(username) = ?', [$lowerInput])
-            ->orWhereRaw('LOWER(email) = ?', [$lowerInput])
-            ->first();
+        $user = User::where(function ($q) use ($loginInput, $lowerInput, $hasEmailColumn) {
+            $q->where('username', $loginInput)
+              ->orWhereRaw('LOWER(username) = ?', [$lowerInput]);
+
+            if ($hasEmailColumn) {
+                $q->orWhere('email', $loginInput)
+                  ->orWhereRaw('LOWER(email) = ?', [$lowerInput]);
+            }
+        })->first();
 
         // 2. Jika akun demo atau superadmin belum ada di DB, buat saat itu juga (Self-Healing)
         if (!$user) {
             if (in_array($lowerInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
                 DemoStoreService::generate();
-                $user = User::where('username', $loginInput)
-                    ->orWhereRaw('LOWER(username) = ?', [$lowerInput])
-                    ->first();
             } elseif (in_array($lowerInput, ['admin', 'vicky'])) {
                 DatabaseAutoRepair::repair();
-                $user = User::where('username', $loginInput)
-                    ->orWhereRaw('LOWER(username) = ?', [$lowerInput])
-                    ->first();
             }
+
+            $hasEmailColumn = Schema::hasTable('users') && Schema::hasColumn('users', 'email');
+
+            $user = User::where(function ($q) use ($loginInput, $lowerInput, $hasEmailColumn) {
+                $q->where('username', $loginInput)
+                  ->orWhereRaw('LOWER(username) = ?', [$lowerInput]);
+
+                if ($hasEmailColumn) {
+                    $q->orWhere('email', $loginInput)
+                      ->orWhereRaw('LOWER(email) = ?', [$lowerInput]);
+                }
+            })->first();
         }
 
         // 3. Verifikasi Password Multi-Algoritma (Bcrypt, MD5 Legacy, Auto-Sync Demo/Admin)

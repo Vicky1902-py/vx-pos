@@ -7,5 +7,6 @@ deployment:
     - /bin/chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
     - /bin/cp -n $DEPLOYPATH/.env.example $DEPLOYPATH/.env || true
     - /bin/rm -f $DEPLOYPATH/bootstrap/cache/routes*.php $DEPLOYPATH/bootstrap/cache/config*.php $DEPLOYPATH/bootstrap/cache/services*.php || true
+    - /bin/rm -f $DEPLOYPATH/public/uploads/logo/1784947357_logo.jpg || true
     - /usr/local/bin/php $DEPLOYPATH/artisan optimize:clear || /usr/bin/php $DEPLOYPATH/artisan optimize:clear || true
     - /usr/local/bin/php $DEPLOYPATH/artisan migrate --force || /usr/bin/php $DEPLOYPATH/artisan migrate --force || true

@@ -25,17 +25,26 @@ class AppServiceProvider extends ServiceProvider
                 \Illuminate\Support\Facades\DB::table('pengaturan_toko')
                     ->where(function($q) {
                         $q->where('nama_toko', 'like', '%Chanada%')
-                          ->orWhere('nama_toko', 'like', '%Vx-Pos%');
+                          ->orWhere('nama_toko', 'like', '%Vx-Pos%')
+                          ->orWhere('logo', 'like', '%1784947357%');
                     })
-                    ->update(['nama_toko' => 'VxPOS']);
+                    ->update([
+                        'nama_toko' => 'VxPOS',
+                        'logo' => null,
+                    ]);
             }
             if (\Illuminate\Support\Facades\Schema::hasTable('toko')) {
                 \Illuminate\Support\Facades\DB::table('toko')
                     ->where(function($q) {
                         $q->where('nama_toko', 'like', '%Chanada%')
-                          ->orWhere('nama_toko', 'like', '%Vx-Pos%');
+                          ->orWhere('nama_toko', 'like', '%Vx-Pos%')
+                          ->orWhere('logo', 'like', '%1784947357%');
                     })
-                    ->update(['nama_toko' => 'VxPOS', 'slug' => 'vxpos']);
+                    ->update([
+                        'nama_toko' => 'VxPOS',
+                        'slug' => 'vxpos',
+                        'logo' => null,
+                    ]);
             }
         } catch (\Throwable $e) {
             // Abaikan jika database belum siap

@@ -80,6 +80,20 @@ class SuperAdminController extends Controller
             ->limit(5)
             ->get();
 
+        $isPlatformAdmin = TenantManager::isPlatformAdmin();
+        $activeToko = TenantManager::getActiveToko();
+        $totalSemuaToko = 0;
+        $totalTokoAktif = 0;
+        $omzetGlobalSaaS = 0;
+        $daftarSemuaToko = collect();
+
+        if ($isPlatformAdmin) {
+            $totalSemuaToko = DB::table('toko')->count();
+            $totalTokoAktif = DB::table('toko')->where('status', 'aktif')->count();
+            $omzetGlobalSaaS = DB::table('transaksi')->where('status', 'selesai')->sum('total_transaksi');
+            $daftarSemuaToko = DB::table('toko')->orderBy('nama_toko', 'asc')->get();
+        }
+
         return view('superadmin.dashboard', compact(
             'totalOmzet', 
             'penjualanSales', 
@@ -89,7 +103,13 @@ class SuperAdminController extends Controller
             'kasPiutang', 
             'grafikTanggal', 
             'grafikPendapatan', 
-            'produkTerlaris'
+            'produkTerlaris',
+            'isPlatformAdmin',
+            'activeToko',
+            'totalSemuaToko',
+            'totalTokoAktif',
+            'omzetGlobalSaaS',
+            'daftarSemuaToko'
         ));
     }
 }

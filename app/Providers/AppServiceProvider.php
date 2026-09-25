@@ -49,5 +49,35 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             // Abaikan jika database belum siap
         }
+
+        // Auto-create tabel cache, cache_locks, dan sessions jika belum ada (Anti SQLSTATE 42S02)
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('cache')) {
+                \Illuminate\Support\Facades\Schema::create('cache', function ($table) {
+                    $table->string('key')->primary();
+                    $table->mediumText('value');
+                    $table->integer('expiration');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasTable('cache_locks')) {
+                \Illuminate\Support\Facades\Schema::create('cache_locks', function ($table) {
+                    $table->string('key')->primary();
+                    $table->string('owner');
+                    $table->integer('expiration');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+                \Illuminate\Support\Facades\Schema::create('sessions', function ($table) {
+                    $table->string('id')->primary();
+                    $table->unsignedBigInteger('user_id')->nullable()->index();
+                    $table->string('ip_address', 45)->nullable();
+                    $table->text('user_agent')->nullable();
+                    $table->longText('payload');
+                    $table->integer('last_activity')->index();
+                });
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika database belum terhubung
+        }
     }
 }

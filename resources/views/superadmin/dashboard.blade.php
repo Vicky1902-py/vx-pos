@@ -3,6 +3,91 @@
 @section('title', 'Dashboard')
 
 @section('content')
+
+@if(isset($isPlatformAdmin) && $isPlatformAdmin)
+<!-- ======================================================== -->
+<!-- PUSAT KENDALI SAAS: PLATFORM SUPERADMIN MASTER CONTROL -->
+<!-- ======================================================== -->
+<div class="mb-8 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 text-white shadow-xl border border-indigo-900/40 relative overflow-hidden">
+    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 border-b border-white/10">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-2 border border-indigo-500/30">
+                <i class="fa-solid fa-crown text-amber-400"></i> Platform Super Admin Master Control
+            </div>
+            <h2 class="text-2xl lg:text-3xl font-black text-white tracking-tight">Pusat Kendali Eksekutif Multi-Store VxPOS</h2>
+            <p class="text-slate-300 text-sm mt-1">
+                Anda sedang memantau: <strong class="text-amber-400">{{ $activeToko->nama_toko ?? 'VxPOS' }}</strong> 
+                <span class="text-xs text-slate-400">({{ $activeToko->paket ?? 'pro' }} plan)</span>
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Dropdown Switch Toko Cepat -->
+            <div class="relative inline-block text-left">
+                <select onchange="if(this.value) window.location.href=this.value" class="bg-white/10 border border-white/20 text-white rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+                    <option value="" class="text-gray-900 font-bold">--- Beralih Pantau Toko ---</option>
+                    @if(isset($daftarSemuaToko))
+                        @foreach($daftarSemuaToko as $dt)
+                            <option value="{{ route('superadmin.toko.switch', $dt->id) }}" class="text-gray-900 font-medium" {{ ($activeToko && $activeToko->id == $dt->id) ? 'selected' : '' }}>
+                                {{ $dt->nama_toko }} ({{ strtoupper($dt->paket) }})
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
+            <!-- Tombol Kelola Semua Toko -->
+            <a href="{{ route('superadmin.toko.index') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-2.5 px-5 rounded-xl text-sm shadow-lg shadow-indigo-500/30 hover:scale-[1.02] transition-all">
+                <i class="fa-solid fa-store"></i>
+                <span>Kelola Semua Toko & Langganan</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ringkasan Eksekutif Global SaaS -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-2">
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <span class="text-xs text-slate-400 block mb-1">Total Toko Terdaftar</span>
+            <div class="text-2xl font-black text-white flex items-center gap-2">
+                <i class="fa-solid fa-shop text-indigo-400 text-lg"></i>
+                {{ $totalSemuaToko ?? 0 }}
+            </div>
+            <span class="text-[11px] text-slate-400 mt-1 block">Seluruh Tenant Sistem</span>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <span class="text-xs text-slate-400 block mb-1">Toko Aktif Berlangganan</span>
+            <div class="text-2xl font-black text-emerald-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+                {{ $totalTokoAktif ?? 0 }}
+            </div>
+            <span class="text-[11px] text-emerald-400/80 mt-1 block">Status Normal / Beroperasi</span>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <span class="text-xs text-slate-400 block mb-1">Omzet Global (Semua Toko)</span>
+            <div class="text-2xl font-black text-amber-400 flex items-center gap-2">
+                <i class="fa-solid fa-sack-dollar text-lg"></i>
+                Rp {{ number_format($omzetGlobalSaaS ?? 0, 0, ',', '.') }}
+            </div>
+            <span class="text-[11px] text-amber-300/80 mt-1 block">Total Transaksi Konsolidasi</span>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+            <span class="text-xs text-slate-400 block mb-1">Hak Akses Anda</span>
+            <div class="text-xl font-black text-purple-300 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+                Super Admin
+            </div>
+            <span class="text-[11px] text-purple-200/80 mt-1 block">Full Control Multi-Tenant</span>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- [PERBAIKAN] Mengubah Div menjadi Tag <a> agar berfungsi sebagai Shortcut interaktif -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
     

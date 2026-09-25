@@ -212,7 +212,35 @@ return new class extends Migration
             });
         }
 
-        // 13. SEED DATA AWAL: Toko Utama VxPOS, Pengaturan, & Akun Superadmin
+        // 13. Tabel Cache & Cache Locks (Laravel Rate Limiting)
+        if (!Schema::hasTable('cache')) {
+            Schema::create('cache', function (Blueprint $table) {
+                $table->string('key')->primary();
+                $table->mediumText('value');
+                $table->integer('expiration');
+            });
+        }
+        if (!Schema::hasTable('cache_locks')) {
+            Schema::create('cache_locks', function (Blueprint $table) {
+                $table->string('key')->primary();
+                $table->string('owner');
+                $table->integer('expiration');
+            });
+        }
+
+        // 14. Tabel Sessions (Laravel Session Storage)
+        if (!Schema::hasTable('sessions')) {
+            Schema::create('sessions', function (Blueprint $table) {
+                $table->string('id')->primary();
+                $table->unsignedBigInteger('user_id')->nullable()->index();
+                $table->string('ip_address', 45)->nullable();
+                $table->text('user_agent')->nullable();
+                $table->longText('payload');
+                $table->integer('last_activity')->index();
+            });
+        }
+
+        // 15. SEED DATA AWAL: Toko Utama VxPOS, Pengaturan, & Akun Superadmin
         $tokoCount = DB::table('toko')->count();
         if ($tokoCount === 0) {
             $tokoId = DB::table('toko')->insertGetId([

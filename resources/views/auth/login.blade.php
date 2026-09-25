@@ -143,6 +143,28 @@
                 <button class="w-full bg-[#7367f0] hover:bg-[#6355e6] text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 shadow-[0_2px_6px_rgba(115,103,240,0.4)]" type="submit">
                     Login
                 </button>
+
+                <!-- Quick Demo Buttons (1-Klik Coba Demo) -->
+                <div class="mt-6 pt-5 border-t border-[#434968]">
+                    <p class="text-xs text-[#cfd3ec] font-semibold mb-2.5 flex items-center justify-between">
+                        <span><i class="fa-solid fa-flask-vial text-[#28c76f] mr-1.5"></i> Coba Akun Demo:</span>
+                        <span class="text-[10px] text-[#7983bb]">1-Klik Otomatis Isi</span>
+                    </p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="isiKredensial('demo', 'demo123')" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-left border border-white/10 transition group">
+                            <p class="text-xs font-bold text-white group-hover:text-[#7367f0] flex items-center gap-1">
+                                <i class="fa-solid fa-store text-[10px] text-amber-400"></i> Admin Demo
+                            </p>
+                            <p class="text-[10px] text-[#7983bb] mt-0.5">demo / demo123</p>
+                        </button>
+                        <button type="button" onclick="isiKredensial('kasir_demo', 'demo123')" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-left border border-white/10 transition group">
+                            <p class="text-xs font-bold text-white group-hover:text-[#28c76f] flex items-center gap-1">
+                                <i class="fa-solid fa-cash-register text-[10px] text-[#28c76f]"></i> Kasir Demo
+                            </p>
+                            <p class="text-[10px] text-[#7983bb] mt-0.5">kasir_demo / demo123</p>
+                        </button>
+                    </div>
+                </div>
             </form>
 
             <p class="text-center text-muted text-xs mt-8">
@@ -151,5 +173,11 @@
         </div>
     </div>
 
+    <script>
+        function isiKredensial(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+    </script>
 </body>
 </html>

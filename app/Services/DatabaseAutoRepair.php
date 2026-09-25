@@ -33,6 +33,9 @@ class DatabaseAutoRepair
             // 6. Sinkronisasi nama default VxPOS & hapus file logo chanada lama
             self::ensureBranding();
 
+            // 7. Pastikan Toko Demo dan Akun Demo (demo / demo123) tersedia & aktif
+            \App\Services\DemoStoreService::generate();
+
         } catch (\Throwable $e) {
             // Catat error ke log tanpa menghentikan aplikasi jika database belum siap
             \Illuminate\Support\Facades\Log::warning('DatabaseAutoRepair Error: ' . $e->getMessage());

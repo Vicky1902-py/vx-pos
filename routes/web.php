@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/toko/{id}/impersonate', [\App\Http\Controllers\PlatformController::class, 'impersonateToko'])->name('platform.toko.impersonate');
         Route::get('/return-master', [\App\Http\Controllers\PlatformController::class, 'returnMaster'])->name('platform.return');
         Route::get('/system/repair-db', [\App\Http\Controllers\PlatformController::class, 'repairDatabase'])->name('platform.repair_db');
+        Route::match(['get', 'post'], '/demo/generate', [\App\Http\Controllers\PlatformController::class, 'generateDemo'])->name('platform.demo.generate');
     });
 
     // --- AREA SUPER ADMIN & MANAJEMEN TOKO ---

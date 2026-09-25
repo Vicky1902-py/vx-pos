@@ -256,4 +256,19 @@ class PlatformController extends Controller
         DatabaseAutoRepair::repair();
         return redirect()->back()->with('success', 'Pemeriksaan dan perbaikan struktur database multi-tenant berhasil diselesaikan.');
     }
+
+    /**
+     * Buat atau reset Toko & Akun Demo 1-Klik
+     */
+    public function generateDemo()
+    {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
+        $result = \App\Services\DemoStoreService::generate();
+        if ($result['success']) {
+            return redirect()->back()->with('success', 'Akun Demo dan Toko Retail Demo berhasil dibuat! Gunakan Username: demo | Password: demo123 untuk mencoba.');
+        }
+
+        return redirect()->back()->withErrors($result['message']);
+    }
 }

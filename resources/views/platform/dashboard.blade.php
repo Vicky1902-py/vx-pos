@@ -91,6 +91,10 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('platform.demo.generate') }}" onclick="return confirm('Buat atau segarkan data simulasi Toko Retail Demo?')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Buat / Reset Akun Demo</span>
+                    </a>
                     <button onclick="document.getElementById('modalTambahToko').classList.remove('hidden')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center space-x-2">
                         <i class="fa-solid fa-plus-circle"></i>
                         <span>Daftarkan Toko Baru</span>
@@ -100,6 +104,41 @@
                         <span>Buka POS Toko Aktif</span>
                     </a>
                 </div>
+            </div>
+        </div>
+
+        <!-- Card Informasi & Akses Cepat Akun Demo -->
+        @php
+            $demoToko = \Illuminate\Support\Facades\DB::table('toko')->where('slug', 'toko-demo')->first();
+        @endphp
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-xl font-bold shadow-md">
+                    <i class="fa-solid fa-store"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Akun Demo Siap Digunakan</span>
+                        <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/30">PRO PLAN</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1">
+                        Admin Demo: <strong class="text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">demo</strong> &nbsp;&bull;&nbsp; 
+                        Kasir Demo: <strong class="text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">kasir_demo</strong> &nbsp;&bull;&nbsp; 
+                        Password: <strong class="text-amber-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">demo123</strong>
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+                <a href="{{ route('platform.demo.generate') }}" onclick="return confirm('Segarkan data simulasi Toko Demo?')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate text-emerald-400"></i>
+                    <span>Segarkan Data Demo</span>
+                </a>
+                @if($demoToko)
+                    <a href="{{ route('platform.toko.impersonate', $demoToko->id) }}" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        <span>Masuk ke Toko Demo</span>
+                    </a>
+                @endif
             </div>
         </div>
 

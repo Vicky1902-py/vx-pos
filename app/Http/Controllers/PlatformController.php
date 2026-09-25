@@ -106,27 +106,33 @@ class PlatformController extends Controller
         try {
             $slug = Str::slug($request->nama_toko) . '-' . rand(100, 999);
 
-            $tokoId = DB::table('toko')->insertGetId([
+            $tokoCols = Schema::getColumnListing('toko');
+            $tokoData = [
                 'nama_toko'  => $request->nama_toko,
                 'slug'       => $slug,
                 'alamat'     => $request->alamat,
                 'no_telp'    => $request->no_telp,
                 'paket'      => $request->paket,
                 'status'     => 'aktif',
-                'expired_at' => now()->addYear(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            ];
+            if (in_array('expired_at', $tokoCols)) $tokoData['expired_at'] = now()->addYear()->toDateString();
+            if (in_array('created_at', $tokoCols)) $tokoData['created_at'] = now()->toDateTimeString();
+            if (in_array('updated_at', $tokoCols)) $tokoData['updated_at'] = now()->toDateTimeString();
+            
+            $tokoId = DB::table('toko')->insertGetId($tokoData);
 
             // Pengaturan Toko Baru
-            DB::table('pengaturan_toko')->insert([
+            $ptCols = Schema::getColumnListing('pengaturan_toko');
+            $ptData = [
                 'toko_id'    => $tokoId,
                 'nama_toko'  => $request->nama_toko,
                 'alamat'     => $request->alamat,
                 'telepon'    => $request->no_telp,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            ];
+            if (in_array('created_at', $ptCols)) $ptData['created_at'] = now()->toDateTimeString();
+            if (in_array('updated_at', $ptCols)) $ptData['updated_at'] = now()->toDateTimeString();
+            
+            DB::table('pengaturan_toko')->insert($ptData);
 
             // Buat Akun Admin Pemilik Toko
             $semuaHakAkses = [
@@ -139,10 +145,10 @@ class PlatformController extends Controller
             $newAdminData = [
                 'username'   => $request->admin_username,
                 'password'   => Hash::make($request->admin_password),
-                'updated_at' => now(),
+                'updated_at' => now()->toDateTimeString(),
             ];
 
-            if (in_array('created_at', $tableCols)) $newAdminData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $newAdminData['created_at'] = now()->toDateTimeString();
             if (in_array('nama', $tableCols)) $newAdminData['nama'] = $request->admin_nama;
             if (in_array('name', $tableCols)) $newAdminData['name'] = $request->admin_nama;
             if (in_array('email', $tableCols)) $newAdminData['email'] = $request->admin_username . '@vxpos.id';
@@ -178,23 +184,29 @@ class PlatformController extends Controller
             'expired_at' => 'nullable|date',
         ]);
 
-        DB::table('toko')->where('id', $id)->update([
+        $tCols = Schema::getColumnListing('toko');
+        $tUpdate = [
             'nama_toko'  => $request->nama_toko,
             'no_telp'    => $request->no_telp,
             'alamat'     => $request->alamat,
             'paket'      => $request->paket,
             'status'     => $request->status,
-            'expired_at' => $request->expired_at,
-            'updated_at' => now(),
-        ]);
+        ];
+        if (in_array('expired_at', $tCols)) $tUpdate['expired_at'] = $request->expired_at;
+        if (in_array('updated_at', $tCols)) $tUpdate['updated_at'] = now()->toDateTimeString();
+        
+        DB::table('toko')->where('id', $id)->update($tUpdate);
 
         // Sinkronisasi nama ke pengaturan_toko
-        DB::table('pengaturan_toko')->where('toko_id', $id)->update([
+        $ptCols = Schema::getColumnListing('pengaturan_toko');
+        $ptUpdate = [
             'nama_toko'  => $request->nama_toko,
             'alamat'     => $request->alamat,
             'telepon'    => $request->no_telp,
-            'updated_at' => now(),
-        ]);
+        ];
+        if (in_array('updated_at', $ptCols)) $ptUpdate['updated_at'] = now()->toDateTimeString();
+        
+        DB::table('pengaturan_toko')->where('toko_id', $id)->update($ptUpdate);
 
         return redirect()->back()->with('success', "Data Toko [{$request->nama_toko}] berhasil diperbarui.");
     }

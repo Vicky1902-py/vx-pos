@@ -63,26 +63,32 @@ class DemoStoreService
             if (Schema::hasTable('toko')) {
                 $toko = DB::table('toko')->where('slug', 'toko-demo')->first();
                 if (!$toko) {
-                    $tokoId = DB::table('toko')->insertGetId([
+                    $tokoCols = Schema::getColumnListing('toko');
+                    $tokoData = [
                         'nama_toko'  => 'Toko Retail Demo (VxPOS)',
                         'slug'       => 'toko-demo',
-                        'alamat'     => 'Jl. Simulasi Bisnis No. 88, Menteng, Jakarta',
+                        'alamat'     => 'Kupang NTT Maulafa',
                         'no_telp'    => '0899-DEMO-VXPOS',
                         'paket'      => 'pro',
                         'status'     => 'aktif',
-                        'expired_at' => now()->addYears(2)->toDateString(),
-                        'created_at' => now()->toDateTimeString(),
-                        'updated_at' => now()->toDateTimeString(),
-                    ]);
+                    ];
+                    if (in_array('expired_at', $tokoCols)) $tokoData['expired_at'] = now()->addYears(2)->toDateString();
+                    if (in_array('created_at', $tokoCols)) $tokoData['created_at'] = now()->toDateTimeString();
+                    if (in_array('updated_at', $tokoCols)) $tokoData['updated_at'] = now()->toDateTimeString();
+                    
+                    $tokoId = DB::table('toko')->insertGetId($tokoData);
                 } else {
                     $tokoId = $toko->id;
-                    DB::table('toko')->where('id', $tokoId)->update([
+                    $tokoCols = Schema::getColumnListing('toko');
+                    $tokoUpdate = [
                         'nama_toko'  => 'Toko Retail Demo (VxPOS)',
                         'paket'      => 'pro',
                         'status'     => 'aktif',
-                        'expired_at' => now()->addYears(2)->toDateString(),
-                        'updated_at' => now()->toDateTimeString(),
-                    ]);
+                    ];
+                    if (in_array('expired_at', $tokoCols)) $tokoUpdate['expired_at'] = now()->addYears(2)->toDateString();
+                    if (in_array('updated_at', $tokoCols)) $tokoUpdate['updated_at'] = now()->toDateTimeString();
+                    
+                    DB::table('toko')->where('id', $tokoId)->update($tokoUpdate);
                 }
             }
 
@@ -90,15 +96,18 @@ class DemoStoreService
             if (Schema::hasTable('pengaturan_toko')) {
                 $cekPengaturan = DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first();
                 if (!$cekPengaturan) {
-                    DB::table('pengaturan_toko')->insert([
+                    $ptCols = Schema::getColumnListing('pengaturan_toko');
+                    $ptData = [
                         'toko_id'    => $tokoId,
                         'nama_toko'  => 'Toko Retail Demo (VxPOS)',
-                        'alamat'     => 'Jl. Simulasi Bisnis No. 88, Menteng, Jakarta',
+                        'alamat'     => 'Kupang NTT Maulafa',
                         'telepon'    => '0899-DEMO-VXPOS',
-                        'logo'       => null,
-                        'created_at' => now()->toDateTimeString(),
-                        'updated_at' => now()->toDateTimeString(),
-                    ]);
+                    ];
+                    if (in_array('logo', $ptCols)) $ptData['logo'] = null;
+                    if (in_array('created_at', $ptCols)) $ptData['created_at'] = now()->toDateTimeString();
+                    if (in_array('updated_at', $ptCols)) $ptData['updated_at'] = now()->toDateTimeString();
+                    
+                    DB::table('pengaturan_toko')->insert($ptData);
                 }
             }
 

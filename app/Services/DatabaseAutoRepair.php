@@ -94,7 +94,8 @@ class DatabaseAutoRepair
         if (Schema::hasTable('toko')) {
             $defaultToko = DB::table('toko')->where('id', 1)->first();
             if (!$defaultToko) {
-                DB::table('toko')->insert([
+                $tCols = Schema::getColumnListing('toko');
+                $tData = [
                     'id'         => 1,
                     'nama_toko'  => 'VxPOS Pusat',
                     'slug'       => 'vxpos-pusat',
@@ -102,10 +103,12 @@ class DatabaseAutoRepair
                     'no_telp'    => '081234567890',
                     'paket'      => 'enterprise',
                     'status'     => 'aktif',
-                    'expired_at' => now()->addYears(10)->toDateString(),
-                    'created_at' => now()->toDateTimeString(),
-                    'updated_at' => now()->toDateTimeString(),
-                ]);
+                ];
+                if (in_array('expired_at', $tCols)) $tData['expired_at'] = now()->addYears(10)->toDateString();
+                if (in_array('created_at', $tCols)) $tData['created_at'] = now()->toDateTimeString();
+                if (in_array('updated_at', $tCols)) $tData['updated_at'] = now()->toDateTimeString();
+                
+                DB::table('toko')->insert($tData);
             }
         }
     }
@@ -296,13 +299,16 @@ class DatabaseAutoRepair
         if (Schema::hasTable('pengaturan_toko')) {
             $cek = DB::table('pengaturan_toko')->first();
             if (!$cek) {
-                DB::table('pengaturan_toko')->insert([
+                $ptCols = Schema::getColumnListing('pengaturan_toko');
+                $ptData = [
                     'toko_id'    => 1,
                     'nama_toko'  => 'VxPOS',
-                    'logo'       => null,
-                    'created_at' => now()->toDateTimeString(),
-                    'updated_at' => now()->toDateTimeString(),
-                ]);
+                ];
+                if (in_array('logo', $ptCols)) $ptData['logo'] = null;
+                if (in_array('created_at', $ptCols)) $ptData['created_at'] = now()->toDateTimeString();
+                if (in_array('updated_at', $ptCols)) $ptData['updated_at'] = now()->toDateTimeString();
+                
+                DB::table('pengaturan_toko')->insert($ptData);
             } else {
                 DB::table('pengaturan_toko')
                     ->where(function($q) {

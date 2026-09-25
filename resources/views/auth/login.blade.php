@@ -1,7 +1,12 @@
-﻿@php
-    $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
-    $logoPath = ($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null;
-    $namaToko = $pengaturan->nama_toko ?? 'Chanada Auto Parts';
+@php
+    $pengaturan = null;
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('pengaturan_toko')) {
+            $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
+        }
+    } catch (\Throwable $e) {}
+    $logoPath = ($pengaturan && !empty($pengaturan->logo)) ? asset('uploads/logo/' . $pengaturan->logo) : null;
+    $namaToko = $pengaturan->nama_toko ?? 'Vx-Pos';
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -35,10 +40,10 @@
             @if($logoPath)
                 <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-16 md:h-20 w-auto object-contain bg-white p-2.5 rounded-xl shadow-lg">
             @else
-                <div class="w-12 h-12 bg-[#7367f0] rounded-lg flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-car-side text-white text-xl"></i>
+                <div class="w-12 h-12 bg-gradient-to-tr from-[#7367f0] to-[#9e95f5] rounded-xl flex items-center justify-center shadow-lg shadow-[#7367f0]/30 text-white font-black text-xl">
+                    VX
                 </div>
-                <span class="text-3xl font-bold text-heading tracking-tight">Chanada<span class="text-[#7367f0]">Auto Parts</span></span>
+                <span class="text-3xl font-black text-heading tracking-tight">VX-<span class="text-[#7367f0]">POS</span></span>
             @endif
         </div>
 
@@ -82,16 +87,16 @@
                 @if($logoPath)
                     <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-14 w-auto object-contain bg-white p-2 rounded-xl shadow-md">
                 @else
-                    <div class="w-10 h-10 bg-[#7367f0] rounded-lg flex items-center justify-center shadow-md">
-                        <i class="fa-solid fa-car-side text-white"></i>
+                    <div class="w-10 h-10 bg-gradient-to-tr from-[#7367f0] to-[#9e95f5] rounded-xl flex items-center justify-center shadow-md shadow-[#7367f0]/30 text-white font-black text-lg">
+                        VX
                     </div>
-                    <span class="text-2xl font-bold text-heading tracking-tight">Chanada<span class="text-[#7367f0]">Auto</span></span>
+                    <span class="text-2xl font-black text-heading tracking-tight">VX-<span class="text-[#7367f0]">POS</span></span>
                 @endif
             </div>
 
             <div class="mb-8">
-                <h2 class="text-2xl font-semibold text-heading mb-2">Welcome to {{ explode(' ', $namaToko)[0] }}!</h2>
-                <p class="text-muted text-sm">Sistem Manajemen Penjualan & Distribusi. Silakan masuk ke akun Anda.</p>
+                <h2 class="text-2xl font-semibold text-heading mb-2">Selamat Datang di {{ $namaToko }}!</h2>
+                <p class="text-muted text-sm">Sistem Manajemen POS & Multi-Toko Modern. Silakan masuk ke akun Anda.</p>
             </div>
 
             @if(session('error'))
@@ -131,7 +136,7 @@
                 <div class="flex items-center justify-between mt-2 mb-6">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" class="w-4 h-4 rounded bg-input border-input text-[#7367f0] focus:ring-[#7367f0] focus:ring-offset-panel accent-[#7367f0]">
-                        <span class="text-muted text-[13px]">Remember me</span>
+                        <span class="text-muted text-[13px]">Ingat saya</span>
                     </label>
                 </div>
 
@@ -141,7 +146,7 @@
             </form>
 
             <p class="text-center text-muted text-xs mt-8">
-                &copy; {{ date('Y') }} {{ $namaToko }}.<br>Dikembangkan Khusus untuk Sistem Internal.
+                &copy; {{ date('Y') }} {{ $namaToko }}. Multi-Store Point of Sale Platform.
             </p>
         </div>
     </div>

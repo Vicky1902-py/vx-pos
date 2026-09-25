@@ -75,11 +75,11 @@
             @if(isset($pengaturan->logo) && $pengaturan->logo)
                 <img src="{{ asset('uploads/logo/' . $pengaturan->logo) }}" alt="Logo">
             @else
-                <h1>CHANADA<br>AUTOPARTS</h1>
+                <h1>VX-POS<br>POINT OF SALE</h1>
             @endif
         </div>
         <div class="header-text">
-            <strong>{{ $pengaturan->nama_toko ?? 'CHANADA AUTOPARTS' }}</strong>
+            <strong>{{ $pengaturan->nama_toko ?? 'VX-POS' }}</strong>
             Alamat: {{ $pengaturan->alamat ?? '-' }}<br>
             Telp: {{ $pengaturan->telepon ?? '-' }} | Email: {{ $pengaturan->email ?? '-' }}
         </div>

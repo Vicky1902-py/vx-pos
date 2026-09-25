@@ -1,6 +1,6 @@
 @php
     $logoPath = ($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null;
-    $namaToko = $pengaturan->nama_toko ?? 'Chanada AutoParts';
+    $namaToko = $pengaturan->nama_toko ?? 'Vx-Pos';
     $alamatToko = $pengaturan->alamat ?? 'Alamat Belum Diatur';
     $telpToko = $pengaturan->telepon ?? '-';
 @endphp

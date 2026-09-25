@@ -81,7 +81,7 @@ class PelangganController extends Controller
 
         $totalPiutangGlobal = $pelanggan->sum('total_piutang');
         $pengaturan = DB::table('pengaturan_toko')->first();
-        $namaToko = $pengaturan->nama_toko ?? 'Chanada AutoParts';
+        $namaToko = $pengaturan->nama_toko ?? 'Vx-Pos';
 
         return view('superadmin.pelanggan.excel', compact('pelanggan', 'totalPiutangGlobal', 'namaToko'));
     }

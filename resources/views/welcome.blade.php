@@ -166,7 +166,7 @@
                             </div>
                             <div class="space-y-2 text-xs">
                                 <div class="flex items-center justify-between py-1.5 text-slate-300">
-                                    <span class="font-semibold text-white flex items-center gap-2"><i class="fa-solid fa-shop text-brand-400"></i> Toko Pusat - Chanada Auto</span>
+                                    <span class="font-semibold text-white flex items-center gap-2"><i class="fa-solid fa-shop text-brand-400"></i> Toko Pusat - Vx-Pos Flagship</span>
                                     <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">Aktif Melayani</span>
                                     <span>Rp 14.850.000</span>
                                     <span class="text-indigo-400 hover:underline cursor-pointer">Buka Kasir &rarr;</span>
@@ -459,7 +459,7 @@
                 </p>
             </div>
             <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-                <p>&copy; 2026 VX-POS & Chanada AutoParts. Hak Cipta Dilindungi.</p>
+                <p>&copy; 2026 VX-POS Enterprise Multi-Store Platform. Hak Cipta Dilindungi.</p>
                 <div class="flex gap-6">
                     <a href="{{ route('login') }}" class="hover:text-white transition-colors">Login Toko</a>
                     <a href="#fitur" class="hover:text-white transition-colors">Fitur</a>

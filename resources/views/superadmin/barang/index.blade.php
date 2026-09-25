@@ -6,7 +6,7 @@
 <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
     <div>
         <h3 class="font-bold text-[#4b465c] text-2xl">Master Barang</h3>
-        <p class="text-[#a8aaae] text-sm">Kelola inventaris suku cadang, produk, dan stok ChanadaAutoParts</p>
+        <p class="text-[#a8aaae] text-sm">Kelola inventaris suku cadang, produk, dan stok Vx-Pos</p>
     </div>
     <div class="flex flex-wrap gap-3">
         <button onclick="downloadTemplate()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-xl text-sm transition-all flex items-center gap-2">

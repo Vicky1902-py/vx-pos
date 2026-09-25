@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Vx-Pos'),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'https://chanadaautoparts.net'),
+    'url' => env('APP_URL', 'https://vxcode.web-id.id'),
 
     /*
     |--------------------------------------------------------------------------

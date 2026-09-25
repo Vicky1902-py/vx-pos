@@ -101,16 +101,16 @@ return new class extends Migration
             });
         }
 
-        // 11. Otomatis Migrasikan Toko Eksisting (Chanada AutoParts) sebagai Toko Utama ID #1
+        // 11. Otomatis Migrasikan Toko Eksisting (Vx-Pos) sebagai Toko Utama ID #1
         $tokoCount = DB::table('toko')->count();
         if ($tokoCount === 0) {
             $existingPengaturan = DB::table('pengaturan_toko')->first();
-            $namaToko = $existingPengaturan->nama_toko ?? 'Chanada AutoParts';
+            $namaToko = $existingPengaturan->nama_toko ?? 'Vx-Pos';
             $logo = $existingPengaturan->logo ?? null;
 
             $tokoId = DB::table('toko')->insertGetId([
                 'nama_toko'  => $namaToko,
-                'slug'       => 'chanada-autoparts',
+                'slug'       => 'vx-pos',
                 'alamat'     => 'Jl. Raya Otomotif No. 1',
                 'no_telp'    => '08123456789',
                 'logo'       => $logo,

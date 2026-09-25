@@ -1,12 +1,21 @@
 @php
-    $tokoAktif = \App\Services\TenantManager::getActiveToko();
-    $tokoId = \App\Services\TenantManager::getTokoId();
-    $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first() 
-                ?? \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
-    $logoPath = ($tokoAktif && $tokoAktif->logo) ? asset('uploads/logo/' . $tokoAktif->logo) 
-                : (($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null);
-    $namaToko = $tokoAktif->nama_toko ?? ($pengaturan->nama_toko ?? 'Chanada AutoParts');
-    $isPlatformAdmin = \App\Services\TenantManager::isPlatformAdmin();
+    $pengaturan = null;
+    $tokoAktif = null;
+    $tokoId = null;
+    $isPlatformAdmin = false;
+    try {
+        $tokoAktif = \App\Services\TenantManager::getActiveToko();
+        $tokoId = \App\Services\TenantManager::getTokoId();
+        if (\Illuminate\Support\Facades\Schema::hasTable('pengaturan_toko')) {
+            $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first() 
+                        ?? \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
+        }
+        $isPlatformAdmin = \App\Services\TenantManager::isPlatformAdmin();
+    } catch (\Throwable $e) {}
+
+    $logoPath = ($tokoAktif && !empty($tokoAktif->logo)) ? asset('uploads/logo/' . $tokoAktif->logo) 
+                : (($pengaturan && !empty($pengaturan->logo)) ? asset('uploads/logo/' . $pengaturan->logo) : null);
+    $namaToko = $tokoAktif->nama_toko ?? ($pengaturan->nama_toko ?? 'Vx-Pos');
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -62,10 +71,10 @@
                     <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="max-h-10 w-auto mr-3 object-contain drop-shadow-sm">
                     <span class="text-[15px] font-bold text-gray-800 tracking-tight leading-tight line-clamp-2">{{ $namaToko }}</span>
                 @else
-                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-md">
-                        <i class="fa-solid fa-car-side text-white"></i>
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-md font-bold text-white text-xs">
+                        VX
                     </div>
-                    <span class="text-xl font-bold text-gray-800 tracking-tight">Chanada<span class="text-indigo-600">Auto</span></span>
+                    <span class="text-xl font-bold text-gray-800 tracking-tight">VX-<span class="text-indigo-600">POS</span></span>
                 @endif
             </div>
             

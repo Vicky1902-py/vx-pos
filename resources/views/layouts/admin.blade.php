@@ -194,7 +194,7 @@
                         <span class="ml-3 text-[15px]">Manajemen User</span>
                     </a>
                 </li>
-                @if($isPlatformAdmin || $isGod)
+                @if($isPlatformAdmin)
                 <li>
                     <a href="{{ route('superadmin.toko.index') }}" class="flex items-center p-3 rounded-lg group transition-all {{ request()->is('superadmin/toko*') ? 'sidebar-active' : 'text-gray-600 hover:bg-gray-50' }}">
                         <i class="fa-solid fa-shop w-5 h-5 transition duration-75"></i>

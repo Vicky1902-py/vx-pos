@@ -35,6 +35,16 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $tokoId = TenantManager::getTokoId();
+        $toko = TenantManager::getActiveToko();
+        $isPlatform = TenantManager::isPlatformAdmin();
+
+        // Enforce Kuota Paket Starter (Maksimal 3 User Karyawan)
+        if (!$isPlatform && $toko && $toko->paket === 'starter') {
+            $userCount = DB::table('users')->where('toko_id', $tokoId)->count();
+            if ($userCount >= 3) {
+                return redirect()->back()->with('error', 'Batas kuota Paket Starter tercapai (Maksimal 3 User). Silakan upgrade ke Paket Pro untuk Unlimited User!');
+            }
+        }
 
         $request->validate([
             'nama'      => 'required|string|max:255',

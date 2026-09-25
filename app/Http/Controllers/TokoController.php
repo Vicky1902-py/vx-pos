@@ -10,6 +10,16 @@ use App\Services\TenantManager;
 
 class TokoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (!TenantManager::isPlatformAdmin()) {
+                abort(403, 'Akses Ditolak: Halaman Multi-Toko hanya dapat diakses oleh Platform Superadmin.');
+            }
+            return $next($request);
+        });
+    }
+
     public function index(Request $request)
     {
         $search = $request->get('search');

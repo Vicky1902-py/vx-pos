@@ -145,11 +145,15 @@
                 </button>
 
                 <!-- Quick Demo Buttons (1-Klik Coba Demo) -->
-                <div class="mt-6 pt-5 border-t border-[#434968]">
-                    <p class="text-xs text-[#cfd3ec] font-semibold mb-2.5 flex items-center justify-between">
-                        <span><i class="fa-solid fa-flask-vial text-[#28c76f] mr-1.5"></i> Coba Akun Demo:</span>
-                        <span class="text-[10px] text-[#7983bb]">1-Klik Otomatis Isi</span>
-                    </p>
+                <div class="mt-6 pt-5 border-t border-[#434968] space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-[#cfd3ec] font-semibold flex items-center">
+                            <i class="fa-solid fa-flask-vial text-[#28c76f] mr-1.5"></i> Coba Akun Demo:
+                        </span>
+                        <a href="{{ route('login.demo.quick', 'admin') }}" class="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline flex items-center gap-1">
+                            <i class="fa-solid fa-bolt text-[10px]"></i> Masuk Cepat Demo (1-Klik)
+                        </a>
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <button type="button" onclick="isiKredensial('demo', 'demo123')" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-left border border-white/10 transition group">
                             <p class="text-xs font-bold text-white group-hover:text-[#7367f0] flex items-center gap-1">
@@ -162,6 +166,14 @@
                                 <i class="fa-solid fa-cash-register text-[10px] text-[#28c76f]"></i> Kasir Demo
                             </p>
                             <p class="text-[10px] text-[#7983bb] mt-0.5">kasir_demo / demo123</p>
+                        </button>
+                    </div>
+                    <div class="pt-1">
+                        <button type="button" onclick="isiKredensial('admin', 'admin123')" class="w-full px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-left border border-indigo-500/20 transition group flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Akun Superadmin Utama
+                            </span>
+                            <span class="text-[10px] text-[#7983bb]">admin / admin123</span>
                         </button>
                     </div>
                 </div>

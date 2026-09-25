@@ -162,15 +162,6 @@ class DatabaseAutoRepair
             }
         });
 
-        // Sinkronisasi data lama users: jika nama kosong tapi ada name
-        if (Schema::hasColumn('users', 'name') && Schema::hasColumn('users', 'nama')) {
-            DB::statement("UPDATE users SET nama = name WHERE (nama IS NULL OR nama = '') AND name IS NOT NULL");
-        }
-        // Jika username kosong tapi ada email
-        if (Schema::hasColumn('users', 'email') && Schema::hasColumn('users', 'username')) {
-            DB::statement("UPDATE users SET username = SUBSTRING_INDEX(email, '@', 1) WHERE (username IS NULL OR username = '') AND email IS NOT NULL");
-        }
-
         // Pastikan kolom email dan name bersifat nullable agar tidak memblokir insert akun baru
         try {
             if (Schema::hasColumn('users', 'email')) {
@@ -178,6 +169,20 @@ class DatabaseAutoRepair
             }
             if (Schema::hasColumn('users', 'name')) {
                 DB::statement("ALTER TABLE users MODIFY COLUMN name VARCHAR(255) NULL");
+            }
+            // Hapus index unique email lama agar tidak bentrok jika email null / string kosong
+            DB::statement("ALTER TABLE users DROP INDEX users_email_unique");
+        } catch (\Throwable $e) {}
+
+        // Sinkronisasi data lama users: jika nama kosong tapi ada name, atau sebaliknya
+        try {
+            if (Schema::hasColumn('users', 'name') && Schema::hasColumn('users', 'nama')) {
+                DB::statement("UPDATE users SET nama = name WHERE (nama IS NULL OR nama = '') AND name IS NOT NULL");
+                DB::statement("UPDATE users SET name = nama WHERE (name IS NULL OR name = '') AND nama IS NOT NULL");
+            }
+            if (Schema::hasColumn('users', 'email') && Schema::hasColumn('users', 'username')) {
+                DB::statement("UPDATE users SET username = SUBSTRING_INDEX(email, '@', 1) WHERE (username IS NULL OR username = '') AND email IS NOT NULL");
+                DB::statement("UPDATE users SET email = CONCAT(username, '@vxpos.id') WHERE (email IS NULL OR email = '') AND username IS NOT NULL");
             }
         } catch (\Throwable $e) {}
     }

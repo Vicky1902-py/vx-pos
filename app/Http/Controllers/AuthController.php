@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use App\Models\User;
 use App\Services\TenantManager;
+use App\Services\DemoStoreService;
+use App\Services\DatabaseAutoRepair;
 
 class AuthController extends Controller
 {
@@ -30,51 +34,77 @@ class AuthController extends Controller
         ]);
 
         $loginInput = trim($request->input('username'));
-        $password = $request->input('password');
+        $password = (string) $request->input('password');
+        $lowerInput = strtolower($loginInput);
 
-        // [SAFETY NET]: Jika user mencoba login akun demo atau admin dan belum ada di DB, buat saat itu juga!
-        try {
-            if (in_array($loginInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
-                $cekDemo = DB::table('users')->where('username', $loginInput)->first();
-                if (!$cekDemo) {
-                    \App\Services\DemoStoreService::generate();
-                }
-            } elseif (in_array($loginInput, ['admin', 'vicky'])) {
-                $cekAdmin = DB::table('users')->where('username', $loginInput)->first();
-                if (!$cekAdmin) {
-                    \App\Services\DatabaseAutoRepair::repair();
-                }
-            }
-        } catch (\Throwable $e) {}
+        // 1. Cek apakah ada record user berdasarkan username atau email
+        $user = User::where('username', $loginInput)
+            ->orWhere('email', $loginInput)
+            ->orWhereRaw('LOWER(username) = ?', [$lowerInput])
+            ->orWhereRaw('LOWER(email) = ?', [$lowerInput])
+            ->first();
 
-        // Dukung login via username maupun email
-        $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);
-        $attempts = [];
-
-        if ($isEmail && Schema::hasColumn('users', 'email')) {
-            $attempts[] = ['email' => $loginInput, 'password' => $password];
-        }
-        $attempts[] = ['username' => $loginInput, 'password' => $password];
-        if (!$isEmail && Schema::hasColumn('users', 'email')) {
-            $attempts[] = ['email' => $loginInput, 'password' => $password];
-        }
-
-        $berhasilLogin = false;
-        foreach ($attempts as $credentials) {
-            if (Auth::attempt($credentials, $request->boolean('remember'))) {
-                $berhasilLogin = true;
-                break;
+        // 2. Jika akun demo atau superadmin belum ada di DB, buat saat itu juga (Self-Healing)
+        if (!$user) {
+            if (in_array($lowerInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
+                DemoStoreService::generate();
+                $user = User::where('username', $loginInput)
+                    ->orWhereRaw('LOWER(username) = ?', [$lowerInput])
+                    ->first();
+            } elseif (in_array($lowerInput, ['admin', 'vicky'])) {
+                DatabaseAutoRepair::repair();
+                $user = User::where('username', $loginInput)
+                    ->orWhereRaw('LOWER(username) = ?', [$lowerInput])
+                    ->first();
             }
         }
 
-        if ($berhasilLogin) {
+        // 3. Verifikasi Password Multi-Algoritma (Bcrypt, MD5 Legacy, Auto-Sync Demo/Admin)
+        $passwordValid = false;
+
+        if ($user) {
+            // A. Verifikasi standar Bcrypt / Argon
+            if (Hash::check($password, $user->password)) {
+                $passwordValid = true;
+            }
+            // B. Sinkronisasi Darurat Akun Demo (Jika ketik demo123, otomatis sinkron)
+            elseif (in_array(strtolower($user->username), ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo']) && $password === 'demo123') {
+                $user->password = Hash::make('demo123');
+                $user->status = 'aktif';
+                $user->save();
+                $passwordValid = true;
+            }
+            // C. Sinkronisasi Darurat Akun Superadmin Platform (Jika ketik admin123, otomatis sinkron)
+            elseif (in_array(strtolower($user->username), ['admin', 'vicky']) && $password === 'admin123') {
+                $user->password = Hash::make('admin123');
+                $user->status = 'aktif';
+                $user->save();
+                $passwordValid = true;
+            }
+            // D. Kompatibilitas Database Impor Lama (MD5 Hash)
+            elseif (md5($password) === $user->password || md5(md5($password)) === $user->password) {
+                // Otomatis upgrade ke hash Bcrypt standar yang aman
+                $user->password = Hash::make($password);
+                $user->save();
+                $passwordValid = true;
+            }
+            // E. Plaintext legacy fallback
+            elseif ($user->password === $password) {
+                $user->password = Hash::make($password);
+                $user->save();
+                $passwordValid = true;
+            }
+        }
+
+        // 4. Jika password cocok, lakukan proses Login Sesi
+        if ($passwordValid && $user) {
+            // Cek status keaktifan user
+            if ($user->status === 'nonaktif') {
+                return back()->with('error', 'Akun Anda berstatus nonaktif. Silakan hubungi Superadmin Platform untuk mengaktifkannya.');
+            }
+
+            Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
-            
-            // Cek status user, kalau nonaktif langsung batalkan
-            if (Auth::user()->status === 'nonaktif') {
-                Auth::logout();
-                return back()->with('error', 'Akun Anda dinonaktifkan. Silakan hubungi Superadmin Platform.');
-            }
 
             // [PEMISAHAN PORTAL]:
             // Superadmin Utama -> Masuk ke Master SaaS Platform Control Panel
@@ -85,10 +115,31 @@ class AuthController extends Controller
             }
 
             return redirect()->route('superadmin.dashboard')
-                ->with('success', 'Selamat datang di POS Dashboard Toko.');
+                ->with('success', "Selamat datang di POS Dashboard Toko ({$user->nama}).");
         }
 
         return back()->with('error', 'Kredensial login tidak cocok. Pastikan username dan password benar.');
+    }
+
+    /**
+     * 1-Click Fast Login Langsung ke Akun Toko Demo (Tanpa Perlu Ketik Kredensial)
+     */
+    public function quickDemoLogin($role = 'admin')
+    {
+        // Pastikan toko demo dan akun demo tersedia
+        DemoStoreService::generate();
+
+        $targetUsername = ($role === 'kasir') ? 'kasir_demo' : 'demo';
+        $user = User::where('username', $targetUsername)->first();
+
+        if ($user) {
+            Auth::login($user);
+            request()->session()->regenerate();
+            return redirect()->route('superadmin.dashboard')
+                ->with('success', "Berhasil masuk ke Toko Retail Demo (VxPOS) sebagai {$user->nama}!");
+        }
+
+        return redirect()->route('login')->with('error', 'Gagal memuat akun demo. Silakan coba lagi.');
     }
 
     public function logout(Request $request)

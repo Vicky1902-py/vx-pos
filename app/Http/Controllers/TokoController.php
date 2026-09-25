@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Services\TenantManager;
 
@@ -53,7 +54,7 @@ class TokoController extends Controller
             'paket'           => 'required|in:starter,pro,enterprise',
             'admin_nama'      => 'required|string|max:255',
             'admin_username'  => 'required|string|max:50|unique:users,username',
-            'admin_password'  => 'required|string|min:6',
+            'admin_password'  => 'required|string|min:3',
         ]);
 
         DB::beginTransaction();
@@ -87,18 +88,27 @@ class TokoController extends Controller
                 'kelola_bonus', 'manajemen_user'
             ];
 
-            DB::table('users')->insert([
+            $newAdminData = [
                 'toko_id'           => $tokoId,
                 'nama'              => $request->admin_nama,
                 'username'          => $request->admin_username,
                 'password'          => Hash::make($request->admin_password),
                 'role'              => 'admin',
-                'is_platform_admin' => false,
+                'is_platform_admin' => 0,
                 'status'            => 'aktif',
                 'hak_akses'         => json_encode($semuaHakAkses),
                 'created_at'        => now(),
                 'updated_at'        => now(),
-            ]);
+            ];
+
+            if (Schema::hasColumn('users', 'name')) {
+                $newAdminData['name'] = $request->admin_nama;
+            }
+            if (Schema::hasColumn('users', 'email')) {
+                $newAdminData['email'] = $request->admin_username . '@vxpos.id';
+            }
+
+            DB::table('users')->insert($newAdminData);
 
             DB::commit();
             return redirect()->back()->with('success', "Toko baru [{$request->nama_toko}] beserta akun Admin Toko berhasil didaftarkan!");

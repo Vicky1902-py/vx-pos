@@ -74,6 +74,10 @@
 
             <!-- Action Button -->
             <div class="flex items-center gap-3">
+                <a href="{{ route('login.demo.quick', 'admin') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 transition-all border border-amber-200">
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <span>Coba Demo</span>
+                </a>
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-600/25 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all">
                     <span>Masuk ke Toko</span>
                     <i class="fa-solid fa-arrow-right text-xs"></i>
@@ -103,7 +107,11 @@
 
             <!-- CTA Buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-brand-600 shadow-xl shadow-slate-900/10 hover:shadow-brand-600/30 transition-all flex items-center justify-center gap-3">
+                <a href="{{ route('login.demo.quick', 'admin') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-xl shadow-amber-400/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <span>Coba Demo 1-Klik</span>
+                </a>
+                <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-brand-600 shadow-xl shadow-slate-900/10 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
                     <i class="fa-solid fa-store"></i>
                     <span>Buka Sistem Toko</span>
                 </a>

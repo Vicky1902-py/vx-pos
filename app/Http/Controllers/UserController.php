@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use App\Services\TenantManager;
 
 class UserController extends Controller
@@ -49,13 +50,13 @@ class UserController extends Controller
         $request->validate([
             'nama'      => 'required|string|max:255',
             'username'  => 'required|string|max:50|unique:users,username',
-            'password'  => 'required|string|min:6',
+            'password'  => 'required|string|min:3',
             'role'      => 'required|in:superadmin,admin,kasir,sales,gudang',
             'status'    => 'required|in:aktif,nonaktif',
             'hak_akses' => 'nullable|array' // Menangkap data checkbox
         ]);
 
-        DB::table('users')->insert([
+        $userData = [
             'toko_id'    => $tokoId,
             'nama'       => $request->nama,
             'username'   => $request->username,
@@ -65,7 +66,16 @@ class UserController extends Controller
             'hak_akses'  => json_encode($request->hak_akses ?? []), // Konversi ke JSON
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
+
+        if (Schema::hasColumn('users', 'name')) {
+            $userData['name'] = $request->nama;
+        }
+        if (Schema::hasColumn('users', 'email')) {
+            $userData['email'] = $request->username . '@' . ($tokoId ?? '1') . '.vxpos.local';
+        }
+
+        DB::table('users')->insert($userData);
 
         return redirect()->back()->with('success', 'Akun pegawai baru beserta hak aksesnya berhasil dibuat.');
     }
@@ -89,9 +99,13 @@ class UserController extends Controller
             'updated_at' => now(),
         ];
 
+        if (Schema::hasColumn('users', 'name')) {
+            $updateData['name'] = $request->nama;
+        }
+
         // Jika password diisi, berarti Super Admin ingin mereset password
         if ($request->filled('password')) {
-            $request->validate(['password' => 'string|min:6']);
+            $request->validate(['password' => 'string|min:3']);
             $updateData['password'] = Hash::make($request->password);
         }
 

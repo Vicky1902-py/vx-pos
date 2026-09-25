@@ -60,10 +60,10 @@ class UserController extends Controller
         $userData = [
             'username'   => $request->username,
             'password'   => Hash::make($request->password),
-            'updated_at' => now(),
+            'updated_at' => now()->toDateTimeString(),
         ];
 
-        if (in_array('created_at', $tableCols)) $userData['created_at'] = now();
+        if (in_array('created_at', $tableCols)) $userData['created_at'] = now()->toDateTimeString();
         if (in_array('nama', $tableCols)) $userData['nama'] = $request->nama;
         if (in_array('name', $tableCols)) $userData['name'] = $request->nama;
         if (in_array('email', $tableCols)) $userData['email'] = $request->username . '@' . ($tokoId ?? '1') . '.vxpos.local';
@@ -93,7 +93,7 @@ class UserController extends Controller
             'role'       => $request->role,
             'status'     => $request->status,
             'hak_akses'  => json_encode($request->hak_akses ?? []),
-            'updated_at' => now(),
+            'updated_at' => now()->toDateTimeString(),
         ];
 
         if (Schema::hasColumn('users', 'name')) {

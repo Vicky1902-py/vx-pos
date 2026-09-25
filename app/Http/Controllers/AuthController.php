@@ -39,7 +39,10 @@ class AuthController extends Controller
 
         // 0. Jika mencoba login akun demo atau superadmin, buat dan sinkronkan data TERLEBIH DAHULU
         if (in_array($lowerInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
-            DemoStoreService::generate();
+            $demoResult = DemoStoreService::generate();
+            if (isset($demoResult['success']) && !$demoResult['success']) {
+                return back()->with('error', $demoResult['message']);
+            }
         } elseif (in_array($lowerInput, ['admin', 'vicky'])) {
             DatabaseAutoRepair::repair();
         }
@@ -60,7 +63,10 @@ class AuthController extends Controller
         // 2. Safety fallback jika user masih belum ditemukan
         if (!$user) {
             if (in_array($lowerInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
-                DemoStoreService::generate();
+                $demoResult = DemoStoreService::generate();
+                if (isset($demoResult['success']) && !$demoResult['success']) {
+                    return back()->with('error', $demoResult['message']);
+                }
                 $user = User::where('username', $loginInput)->first();
             } elseif (in_array($lowerInput, ['admin', 'vicky'])) {
                 DatabaseAutoRepair::repair();
@@ -142,8 +148,11 @@ class AuthController extends Controller
      */
     public function quickDemoLogin($role = 'admin')
     {
+        // Pastikan struktur database aman
+        DatabaseAutoRepair::repair();
+        
         // Pastikan toko demo dan akun demo tersedia
-        DemoStoreService::generate();
+        $result = DemoStoreService::generate();
 
         $targetUsername = ($role === 'kasir') ? 'kasir_demo' : 'demo';
         $user = User::where('username', $targetUsername)->first();
@@ -163,7 +172,8 @@ class AuthController extends Controller
                 ->with('success', "Berhasil masuk ke Toko Retail Demo (VxPOS) sebagai {$user->nama}!");
         }
 
-        return redirect()->route('login')->with('error', 'Gagal memuat akun demo. Silakan coba lagi.');
+        $errorMsg = isset($result['message']) ? $result['message'] : 'Gagal memuat akun demo. Silakan coba lagi.';
+        return redirect()->route('login')->with('error', $errorMsg);
     }
 
     public function logout(Request $request)

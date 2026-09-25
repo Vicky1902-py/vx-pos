@@ -102,9 +102,9 @@ class DatabaseAutoRepair
                     'no_telp'    => '081234567890',
                     'paket'      => 'enterprise',
                     'status'     => 'aktif',
-                    'expired_at' => now()->addYears(10)->toDateString(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'expired_at' => now()->toDateTimeString()->addYears(10)->toDateString(),
+                    'created_at' => now()->toDateTimeString(),
+                    'updated_at' => now()->toDateTimeString(),
                 ]);
             }
         }
@@ -162,6 +162,9 @@ class DatabaseAutoRepair
             }
             if (Schema::hasColumn('users', 'name')) {
                 DB::statement("ALTER TABLE users MODIFY COLUMN name VARCHAR(255) NULL");
+            }
+            if (Schema::hasColumn('users', 'password')) {
+                DB::statement("ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL");
             }
             DB::statement("ALTER TABLE users DROP INDEX users_email_unique");
         } catch (\Throwable $e) {}
@@ -234,7 +237,7 @@ class DatabaseAutoRepair
         $vickyData = [
             'username'   => 'vicky',
             'password'   => Hash::make('admin123'),
-            'updated_at' => now(),
+            'updated_at' => now()->toDateTimeString(),
         ];
         if (in_array('nama', $tableCols)) $vickyData['nama'] = 'Vicky Koroh (Platform Owner)';
         if (in_array('name', $tableCols)) $vickyData['name'] = 'Vicky Koroh (Platform Owner)';
@@ -247,7 +250,7 @@ class DatabaseAutoRepair
 
         $vicky = DB::table('users')->where('username', 'vicky')->first();
         if (!$vicky) {
-            if (in_array('created_at', $tableCols)) $vickyData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $vickyData['created_at'] = now()->toDateTimeString();
             DB::table('users')->insert($vickyData);
         } else {
             DB::table('users')->where('id', $vicky->id)->update($vickyData);
@@ -257,7 +260,7 @@ class DatabaseAutoRepair
         $adminData = [
             'username'   => 'admin',
             'password'   => Hash::make('admin123'),
-            'updated_at' => now(),
+            'updated_at' => now()->toDateTimeString(),
         ];
         if (in_array('nama', $tableCols)) $adminData['nama'] = 'Super Admin Utama';
         if (in_array('name', $tableCols)) $adminData['name'] = 'Super Admin Utama';
@@ -270,7 +273,7 @@ class DatabaseAutoRepair
 
         $admin = DB::table('users')->where('username', 'admin')->first();
         if (!$admin) {
-            if (in_array('created_at', $tableCols)) $adminData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $adminData['created_at'] = now()->toDateTimeString();
             DB::table('users')->insert($adminData);
         } else {
             DB::table('users')->where('id', $admin->id)->update($adminData);
@@ -297,8 +300,8 @@ class DatabaseAutoRepair
                     'toko_id'    => 1,
                     'nama_toko'  => 'VxPOS',
                     'logo'       => null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => now()->toDateTimeString(),
+                    'updated_at' => now()->toDateTimeString(),
                 ]);
             } else {
                 DB::table('pengaturan_toko')

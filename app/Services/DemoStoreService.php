@@ -70,9 +70,9 @@ class DemoStoreService
                         'no_telp'    => '0899-DEMO-VXPOS',
                         'paket'      => 'pro',
                         'status'     => 'aktif',
-                        'expired_at' => now()->addYears(2)->toDateString(),
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'expired_at' => now()->toDateTimeString()->addYears(2)->toDateString(),
+                        'created_at' => now()->toDateTimeString(),
+                        'updated_at' => now()->toDateTimeString(),
                     ]);
                 } else {
                     $tokoId = $toko->id;
@@ -80,8 +80,8 @@ class DemoStoreService
                         'nama_toko'  => 'Toko Retail Demo (VxPOS)',
                         'paket'      => 'pro',
                         'status'     => 'aktif',
-                        'expired_at' => now()->addYears(2)->toDateString(),
-                        'updated_at' => now(),
+                        'expired_at' => now()->toDateTimeString()->addYears(2)->toDateString(),
+                        'updated_at' => now()->toDateTimeString(),
                     ]);
                 }
             }
@@ -96,8 +96,8 @@ class DemoStoreService
                         'alamat'     => 'Jl. Simulasi Bisnis No. 88, Menteng, Jakarta',
                         'telepon'    => '0899-DEMO-VXPOS',
                         'logo'       => null,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => now()->toDateTimeString(),
+                        'updated_at' => now()->toDateTimeString(),
                     ]);
                 }
             }
@@ -158,7 +158,7 @@ class DemoStoreService
         $userData = [
             'username'   => $username,
             'password'   => Hash::make($password),
-            'updated_at' => now(),
+            'updated_at' => now()->toDateTimeString(),
         ];
 
         if (in_array('nama', $tableCols)) $userData['nama'] = $nama;
@@ -171,7 +171,7 @@ class DemoStoreService
         if (in_array('hak_akses', $tableCols)) $userData['hak_akses'] = json_encode($hakAkses);
 
         if (!$user) {
-            if (in_array('created_at', $tableCols)) $userData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $userData['created_at'] = now()->toDateTimeString();
             $userId = DB::table('users')->insertGetId($userData);
             return (object) ['id' => $userId, 'nama' => $nama, 'username' => $username];
         } else {
@@ -267,8 +267,8 @@ class DemoStoreService
                     'kategori'    => $item['kategori'],
                     'satuan'      => $item['satuan'],
                     'status'      => 'aktif',
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+                    'created_at'  => now()->toDateTimeString(),
+                    'updated_at'  => now()->toDateTimeString(),
                 ];
                 if ($hasBarangToko) $barangData['toko_id'] = $tokoId;
                 $barangId = DB::table('barang')->insertGetId($barangData);
@@ -282,7 +282,7 @@ class DemoStoreService
                     'stok_tersedia'  => $item['stok'],
                     'stok_minimum'   => $item['min'],
                     'status_warning' => ($item['stok'] <= $item['min']) ? 'warning' : 'aman',
-                    'updated_at'     => now(),
+                    'updated_at'     => now()->toDateTimeString(),
                 ];
                 if ($hasStokToko) $stokData['toko_id'] = $tokoId;
 
@@ -299,7 +299,7 @@ class DemoStoreService
                     'harga_minimum' => $item['modal'] * 1.1,
                     'harga_jual'    => $item['jual'],
                     'diskon_rupiah' => 0,
-                    'updated_at'    => now(),
+                    'updated_at'    => now()->toDateTimeString(),
                 ];
                 if ($hasHargaToko) $hargaData['toko_id'] = $tokoId;
 
@@ -339,7 +339,7 @@ class DemoStoreService
             165000,
             165000,
             0,
-            now(),
+            now()->toDateTimeString(),
             [
                 ['barang_id' => $items[0]->id, 'qty' => 2, 'modal' => 35000, 'jual' => 55000],
                 ['barang_id' => $items[1]->id, 'qty' => 2, 'modal' => 18000, 'jual' => 28000],
@@ -356,7 +356,7 @@ class DemoStoreService
             220000,
             100000,
             120000,
-            now()->subDays(2),
+            now()->toDateTimeString()->subDays(2),
             [
                 ['barang_id' => $items[0]->id, 'qty' => 4, 'modal' => 35000, 'jual' => 55000],
             ]

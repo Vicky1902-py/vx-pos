@@ -270,6 +270,7 @@ class PlatformController extends Controller
     {
         if ($redirect = $this->checkAccess()) return $redirect;
 
+        DatabaseAutoRepair::repair();
         $result = \App\Services\DemoStoreService::generate();
         if ($result['success']) {
             return redirect()->back()->with('success', 'Akun Demo dan Toko Retail Demo berhasil dibuat! Gunakan Username: demo | Password: demo123 untuk mencoba.');

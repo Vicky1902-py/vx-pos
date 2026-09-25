@@ -39,10 +39,24 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::middleware('auth')->group(function () {
     
-    // --- AREA SUPER ADMIN & MANAJEMEN ---
+    // ==========================================
+    // AREA SUPERADMIN UTAMA (PLATFORM MASTER SAAS)
+    // Khusus Vicky Koroh (Platform Owner)
+    // ==========================================
+    Route::prefix('platform')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\PlatformController::class, 'dashboard'])->name('platform.dashboard');
+        Route::post('/toko', [\App\Http\Controllers\PlatformController::class, 'tokoStore'])->name('platform.toko.store');
+        Route::put('/toko/{id}', [\App\Http\Controllers\PlatformController::class, 'tokoUpdate'])->name('platform.toko.update');
+        Route::delete('/toko/{id}', [\App\Http\Controllers\PlatformController::class, 'tokoDestroy'])->name('platform.toko.destroy');
+        Route::get('/toko/{id}/impersonate', [\App\Http\Controllers\PlatformController::class, 'impersonateToko'])->name('platform.toko.impersonate');
+        Route::get('/return-master', [\App\Http\Controllers\PlatformController::class, 'returnMaster'])->name('platform.return');
+        Route::get('/system/repair-db', [\App\Http\Controllers\PlatformController::class, 'repairDatabase'])->name('platform.repair_db');
+    });
+
+    // --- AREA SUPER ADMIN & MANAJEMEN TOKO ---
     Route::prefix('superadmin')->group(function () {
         
-        // Dashboard (Semua akun bisa akses selama bisa login)
+        // Dashboard (Operasional Toko)
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
         
         // ==========================================

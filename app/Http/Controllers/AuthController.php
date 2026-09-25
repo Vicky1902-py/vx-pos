@@ -4,40 +4,75 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use App\Services\TenantManager;
 
 class AuthController extends Controller
 {
     public function showLogin()
     {
-        // Jika sudah login, jangan boleh buka halaman login lagi, arahkan ke pintu utama
+        // Jika sudah login, arahkan ke portal yang sesuai
         if (Auth::check()) {
-            return redirect('/superadmin/dashboard');
+            if (TenantManager::isPlatformAdmin()) {
+                return redirect()->route('platform.dashboard');
+            }
+            return redirect()->route('superadmin.dashboard');
         }
         return view('auth.login');
     }
 
     public function prosesLogin(Request $request)
     {
-        $kredensial = $request->validate([
+        $request->validate([
             'username' => ['required'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($kredensial)) {
-            $request->session()->regenerate();
-            
-            // Cek status user, kalau nonaktif langsung tendang
-            if (Auth::user()->status == 'nonaktif') {
-                Auth::logout();
-                return back()->with('error', 'Akun Anda dinonaktifkan. Hubungi Super Admin.');
-            }
+        $loginInput = trim($request->input('username'));
+        $password = $request->input('password');
 
-            // [PERBAIKAN] Semua role sekarang diarahkan ke satu pintu utama
-            // Keamanan dan visibilitas menu akan diurus oleh sistem ACL
-            return redirect('/superadmin/dashboard');
+        // Dukung login via username maupun email
+        $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);
+        $attempts = [];
+
+        if ($isEmail && Schema::hasColumn('users', 'email')) {
+            $attempts[] = ['email' => $loginInput, 'password' => $password];
+        }
+        $attempts[] = ['username' => $loginInput, 'password' => $password];
+        if (!$isEmail && Schema::hasColumn('users', 'email')) {
+            $attempts[] = ['email' => $loginInput, 'password' => $password];
         }
 
-        return back()->with('error', 'Username atau password salah!');
+        $berhasilLogin = false;
+        foreach ($attempts as $credentials) {
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                $berhasilLogin = true;
+                break;
+            }
+        }
+
+        if ($berhasilLogin) {
+            $request->session()->regenerate();
+            
+            // Cek status user, kalau nonaktif langsung batalkan
+            if (Auth::user()->status === 'nonaktif') {
+                Auth::logout();
+                return back()->with('error', 'Akun Anda dinonaktifkan. Silakan hubungi Superadmin Platform.');
+            }
+
+            // [PEMISAHAN PORTAL]:
+            // Superadmin Utama -> Masuk ke Master SaaS Platform Control Panel
+            // Admin Toko / Staf -> Masuk ke POS Operasional Toko
+            if (TenantManager::isPlatformAdmin()) {
+                return redirect()->route('platform.dashboard')
+                    ->with('success', 'Selamat datang di Pusat Kendali Master Platform VxPOS!');
+            }
+
+            return redirect()->route('superadmin.dashboard')
+                ->with('success', 'Selamat datang di POS Dashboard Toko.');
+        }
+
+        return back()->with('error', 'Kredensial login tidak cocok. Pastikan username dan password benar.');
     }
 
     public function logout(Request $request)

@@ -287,6 +287,9 @@ return new class extends Migration
                 ]);
             }
         }
+
+        // Jalankan perbaikan otomatis multi-tenant dan kolom yang mungkin tertinggal
+        \App\Services\DatabaseAutoRepair::repair();
     }
 
     /**

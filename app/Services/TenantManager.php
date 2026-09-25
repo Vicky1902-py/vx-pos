@@ -38,7 +38,27 @@ class TenantManager
         $user = Auth::user();
         if (!$user) return false;
         
-        return !empty($user->is_platform_admin) || ($user->role === 'superadmin' && empty($user->toko_id));
+        return !empty($user->is_platform_admin) 
+            || $user->username === 'admin' 
+            || $user->username === 'vicky' 
+            || ($user->role === 'superadmin' && (empty($user->toko_id) || $user->toko_id == 1));
+    }
+
+    /**
+     * Cek apakah Superadmin sedang dalam mode asistensi/pantau toko tertentu
+     */
+    public static function isAssistMode(): bool
+    {
+        if (!self::isPlatformAdmin()) return false;
+        return Session::has('active_toko_id');
+    }
+
+    /**
+     * Kembalikan konteks kerja Superadmin ke Platform Master
+     */
+    public static function resetToMaster(): void
+    {
+        Session::forget('active_toko_id');
     }
 
     /**

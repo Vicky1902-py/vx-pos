@@ -70,7 +70,7 @@ class DemoStoreService
                         'no_telp'    => '0899-DEMO-VXPOS',
                         'paket'      => 'pro',
                         'status'     => 'aktif',
-                        'expired_at' => now()->toDateTimeString()->addYears(2)->toDateString(),
+                        'expired_at' => now()->addYears(2)->toDateString(),
                         'created_at' => now()->toDateTimeString(),
                         'updated_at' => now()->toDateTimeString(),
                     ]);
@@ -80,7 +80,7 @@ class DemoStoreService
                         'nama_toko'  => 'Toko Retail Demo (VxPOS)',
                         'paket'      => 'pro',
                         'status'     => 'aktif',
-                        'expired_at' => now()->toDateTimeString()->addYears(2)->toDateString(),
+                        'expired_at' => now()->addYears(2)->toDateString(),
                         'updated_at' => now()->toDateTimeString(),
                     ]);
                 }
@@ -356,14 +356,14 @@ class DemoStoreService
             220000,
             100000,
             120000,
-            now()->toDateTimeString()->subDays(2),
+            now()->subDays(2),
             [
                 ['barang_id' => $items[0]->id, 'qty' => 4, 'modal' => 35000, 'jual' => 55000],
             ]
         );
     }
 
-    private static function createTx(int $tokoId, string $invoice, ?int $salesId, string $namaPelanggan, string $status, float $total, float $dp, float $piutang, Carbon $tanggal, array $items)
+    private static function createTx(int $tokoId, string $invoice, ?int $salesId, string $namaPelanggan, string $status, float $total, float $dp, float $piutang, $tanggal, array $items)
     {
         $hasTxToko = Schema::hasColumn('transaksi', 'toko_id');
         $txData = [

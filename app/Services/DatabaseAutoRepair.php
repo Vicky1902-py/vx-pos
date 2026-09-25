@@ -102,7 +102,7 @@ class DatabaseAutoRepair
                     'no_telp'    => '081234567890',
                     'paket'      => 'enterprise',
                     'status'     => 'aktif',
-                    'expired_at' => now()->toDateTimeString()->addYears(10)->toDateString(),
+                    'expired_at' => now()->addYears(10)->toDateString(),
                     'created_at' => now()->toDateTimeString(),
                     'updated_at' => now()->toDateTimeString(),
                 ]);

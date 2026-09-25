@@ -27,6 +27,9 @@ class DatabaseAutoRepair
         // 4. Pastikan kolom 'toko_id' ada di semua tabel operasional
         try { self::ensureTenantColumns(); } catch (\Throwable $e) {}
 
+        // 4.5 Pastikan kolom baru di tabel operasional ada (migrasi chanada lama)
+        try { self::ensureOperationalColumns(); } catch (\Throwable $e) {}
+
         // 5. Pastikan akun Superadmin Utama (vicky & admin) tersedia & aktif
         try { self::ensureSuperAdminAccounts(); } catch (\Throwable $e) {}
 
@@ -216,6 +219,52 @@ class DatabaseAutoRepair
                     // Update data lama agar toko_id terisi 1
                     DB::table($tbl)->whereNull('toko_id')->orWhere('toko_id', 0)->update(['toko_id' => 1]);
                 }
+            } catch (\Throwable $e) {}
+        }
+    }
+
+    /**
+     * 4.5 Pastikan kolom baru di tabel operasional ada (migrasi chanada lama)
+     */
+    private static function ensureOperationalColumns(): void
+    {
+        if (Schema::hasTable('transaksi')) {
+            try {
+                Schema::table('transaksi', function (Blueprint $table) {
+                    if (!Schema::hasColumn('transaksi', 'pelanggan_id')) $table->unsignedBigInteger('pelanggan_id')->nullable()->after('sales_id');
+                    if (!Schema::hasColumn('transaksi', 'nama_pelanggan')) $table->string('nama_pelanggan')->default('Umum')->after('pelanggan_id');
+                    if (!Schema::hasColumn('transaksi', 'diskon')) $table->decimal('diskon', 15, 2)->default(0)->after('total_transaksi');
+                    if (!Schema::hasColumn('transaksi', 'dp')) $table->decimal('dp', 15, 2)->default(0)->after('diskon');
+                    if (!Schema::hasColumn('transaksi', 'piutang')) $table->decimal('piutang', 15, 2)->default(0)->after('dp');
+                });
+            } catch (\Throwable $e) {}
+        }
+
+        if (Schema::hasTable('detail_transaksi')) {
+            try {
+                Schema::table('detail_transaksi', function (Blueprint $table) {
+                    if (!Schema::hasColumn('detail_transaksi', 'harga_modal')) $table->decimal('harga_modal', 15, 2)->default(0)->after('jumlah');
+                    if (!Schema::hasColumn('detail_transaksi', 'harga_jual')) $table->decimal('harga_jual', 15, 2)->default(0)->after('harga_modal');
+                    if (!Schema::hasColumn('detail_transaksi', 'diskon_item')) $table->decimal('diskon_item', 15, 2)->default(0)->after('harga_jual');
+                });
+            } catch (\Throwable $e) {}
+        }
+
+        if (Schema::hasTable('stok')) {
+            try {
+                Schema::table('stok', function (Blueprint $table) {
+                    if (!Schema::hasColumn('stok', 'stok_minimum')) $table->integer('stok_minimum')->default(0)->after('stok_tersedia');
+                    if (!Schema::hasColumn('stok', 'status_warning')) $table->string('status_warning', 20)->default('aman')->after('stok_minimum');
+                });
+            } catch (\Throwable $e) {}
+        }
+
+        if (Schema::hasTable('harga')) {
+            try {
+                Schema::table('harga', function (Blueprint $table) {
+                    if (!Schema::hasColumn('harga', 'harga_minimum')) $table->decimal('harga_minimum', 15, 2)->default(0)->after('harga_modal');
+                    if (!Schema::hasColumn('harga', 'diskon_rupiah')) $table->decimal('diskon_rupiah', 15, 2)->default(0)->after('harga_jual');
+                });
             } catch (\Throwable $e) {}
         }
     }

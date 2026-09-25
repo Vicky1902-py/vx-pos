@@ -11,35 +11,30 @@ class DatabaseAutoRepair
 {
     /**
      * Jalankan self-healing dan perbaikan otomatis database VxPOS
+     * Setiap langkah dijalankan secara terisolasi agar kegagalan parsial tidak menghentikan perbaikan lain
      */
     public static function repair(): void
     {
-        try {
-            // 1. Pastikan tabel 'cache', 'cache_locks', dan 'sessions' ada
-            self::ensureSystemTables();
+        // 1. Pastikan tabel 'cache', 'cache_locks', dan 'sessions' ada
+        try { self::ensureSystemTables(); } catch (\Throwable $e) {}
 
-            // 2. Pastikan tabel 'toko' ada dan berisi default Toko Pusat
-            self::ensureTokoTable();
+        // 2. Pastikan tabel 'toko' ada dan berisi default Toko Pusat
+        try { self::ensureTokoTable(); } catch (\Throwable $e) {}
 
-            // 3. Pastikan kolom-kolom multi-tenant di tabel 'users' ada
-            self::ensureUsersColumns();
+        // 3. Pastikan kolom-kolom multi-tenant di tabel 'users' ada
+        try { self::ensureUsersColumns(); } catch (\Throwable $e) {}
 
-            // 4. Pastikan kolom 'toko_id' ada di semua tabel operasional
-            self::ensureTenantColumns();
+        // 4. Pastikan kolom 'toko_id' ada di semua tabel operasional
+        try { self::ensureTenantColumns(); } catch (\Throwable $e) {}
 
-            // 5. Pastikan akun Superadmin Utama (vicky & admin) tersedia & aktif
-            self::ensureSuperAdminAccounts();
+        // 5. Pastikan akun Superadmin Utama (vicky & admin) tersedia & aktif
+        try { self::ensureSuperAdminAccounts(); } catch (\Throwable $e) {}
 
-            // 6. Sinkronisasi nama default VxPOS & hapus file logo chanada lama
-            self::ensureBranding();
+        // 6. Sinkronisasi nama default VxPOS & hapus file logo chanada lama
+        try { self::ensureBranding(); } catch (\Throwable $e) {}
 
-            // 7. Pastikan Toko Demo dan Akun Demo (demo / demo123) tersedia & aktif
-            \App\Services\DemoStoreService::generate();
-
-        } catch (\Throwable $e) {
-            // Catat error ke log tanpa menghentikan aplikasi jika database belum siap
-            \Illuminate\Support\Facades\Log::warning('DatabaseAutoRepair Error: ' . $e->getMessage());
-        }
+        // 7. Pastikan Toko Demo dan Akun Demo (demo / demo123) tersedia & aktif
+        try { \App\Services\DemoStoreService::generate(); } catch (\Throwable $e) {}
     }
 
     /**
@@ -116,7 +111,7 @@ class DatabaseAutoRepair
     }
 
     /**
-     * 3. Struktur Tabel Users
+     * 3. Struktur Tabel Users (Ditambahkan per-kolom secara aman)
      */
     private static function ensureUsersColumns(): void
     {
@@ -124,9 +119,9 @@ class DatabaseAutoRepair
             Schema::create('users', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('toko_id')->nullable()->default(1)->index();
-                $table->string('nama');
-                $table->string('username', 50)->unique();
-                $table->string('password');
+                $table->string('nama')->nullable();
+                $table->string('username', 50)->nullable()->unique();
+                $table->string('password')->nullable();
                 $table->string('role', 30)->default('kasir');
                 $table->boolean('is_platform_admin')->default(false);
                 $table->string('status', 20)->default('aktif');
@@ -137,36 +132,28 @@ class DatabaseAutoRepair
             return;
         }
 
-        // Tambah kolom jika belum ada
-        Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'toko_id')) {
-                $table->unsignedBigInteger('toko_id')->nullable()->default(1)->after('id')->index();
-            }
-            if (!Schema::hasColumn('users', 'nama')) {
-                $table->string('nama')->nullable()->after('toko_id');
-            }
-            if (!Schema::hasColumn('users', 'name')) {
-                $table->string('name', 191)->nullable()->after('nama');
-            }
-            if (!Schema::hasColumn('users', 'username')) {
-                $table->string('username', 50)->nullable()->after('nama');
-            }
-            if (!Schema::hasColumn('users', 'email')) {
-                $table->string('email', 191)->nullable()->after('username');
-            }
-            if (!Schema::hasColumn('users', 'role')) {
-                $table->string('role', 30)->default('admin')->after('password');
-            }
-            if (!Schema::hasColumn('users', 'is_platform_admin')) {
-                $table->boolean('is_platform_admin')->default(false)->after('role');
-            }
-            if (!Schema::hasColumn('users', 'status')) {
-                $table->string('status', 20)->default('aktif')->after('is_platform_admin');
-            }
-            if (!Schema::hasColumn('users', 'hak_akses')) {
-                $table->text('hak_akses')->nullable()->after('status');
-            }
-        });
+        // Tambah kolom secara individual agar tidak ada kegagalan kaskade
+        $cols = [
+            'toko_id'           => fn($t) => $t->unsignedBigInteger('toko_id')->nullable()->default(1),
+            'nama'              => fn($t) => $t->string('nama', 191)->nullable(),
+            'name'              => fn($t) => $t->string('name', 191)->nullable(),
+            'username'          => fn($t) => $t->string('username', 50)->nullable(),
+            'email'             => fn($t) => $t->string('email', 191)->nullable(),
+            'role'              => fn($t) => $t->string('role', 30)->default('admin'),
+            'is_platform_admin' => fn($t) => $t->boolean('is_platform_admin')->default(false),
+            'status'            => fn($t) => $t->string('status', 20)->default('aktif'),
+            'hak_akses'         => fn($t) => $t->text('hak_akses')->nullable(),
+        ];
+
+        foreach ($cols as $colName => $fn) {
+            try {
+                if (!Schema::hasColumn('users', $colName)) {
+                    Schema::table('users', function (Blueprint $table) use ($fn) {
+                        $fn($table);
+                    });
+                }
+            } catch (\Throwable $e) {}
+        }
 
         // Pastikan kolom email dan name bersifat nullable agar tidak memblokir insert akun baru
         try {
@@ -176,11 +163,10 @@ class DatabaseAutoRepair
             if (Schema::hasColumn('users', 'name')) {
                 DB::statement("ALTER TABLE users MODIFY COLUMN name VARCHAR(255) NULL");
             }
-            // Hapus index unique email lama agar tidak bentrok jika email null / string kosong
             DB::statement("ALTER TABLE users DROP INDEX users_email_unique");
         } catch (\Throwable $e) {}
 
-        // Sinkronisasi data lama users: jika nama kosong tapi ada name, atau sebaliknya
+        // Sinkronisasi nama/name dan username/email
         try {
             if (Schema::hasColumn('users', 'name') && Schema::hasColumn('users', 'nama')) {
                 DB::statement("UPDATE users SET nama = name WHERE (nama IS NULL OR nama = '') AND name IS NOT NULL");
@@ -213,23 +199,23 @@ class DatabaseAutoRepair
         ];
 
         foreach ($tenantTables as $tbl) {
-            if (Schema::hasTable($tbl)) {
-                if (!Schema::hasColumn($tbl, 'toko_id')) {
-                    Schema::table($tbl, function (Blueprint $table) use ($tbl) {
-                        $table->unsignedBigInteger('toko_id')->nullable()->default(1)->after('id')->index();
-                    });
-                }
+            try {
+                if (Schema::hasTable($tbl)) {
+                    if (!Schema::hasColumn($tbl, 'toko_id')) {
+                        Schema::table($tbl, function (Blueprint $table) {
+                            $table->unsignedBigInteger('toko_id')->nullable()->default(1);
+                        });
+                    }
 
-                // Update data lama agar toko_id terisi 1
-                try {
+                    // Update data lama agar toko_id terisi 1
                     DB::table($tbl)->whereNull('toko_id')->orWhere('toko_id', 0)->update(['toko_id' => 1]);
-                } catch (\Throwable $e) {}
-            }
+                }
+            } catch (\Throwable $e) {}
         }
     }
 
     /**
-     * 5. Pastikan Akun Superadmin Platform (vicky & admin) dan Akun Admin Lama Berfungsi
+     * 5. Pastikan Akun Superadmin Platform (vicky & admin) tersedia & aktif
      */
     private static function ensureSuperAdminAccounts(): void
     {
@@ -237,6 +223,7 @@ class DatabaseAutoRepair
             return;
         }
 
+        $tableCols = Schema::getColumnListing('users');
         $allHakAkses = [
             'master_barang', 'manajemen_harga', 'transaksi_sales',
             'stok_gudang', 'validasi_kasir', 'laporan_penjualan',
@@ -244,56 +231,58 @@ class DatabaseAutoRepair
         ];
 
         // 1. Akun Pemilik Sistem: vicky
-        $vicky = DB::table('users')->where('username', 'vicky')->first();
         $vickyData = [
-            'toko_id'           => 1,
-            'nama'              => 'Vicky Koroh (Platform Owner)',
-            'username'          => 'vicky',
-            'password'          => Hash::make('admin123'),
-            'role'              => 'superadmin',
-            'is_platform_admin' => 1,
-            'status'            => 'aktif',
-            'hak_akses'         => json_encode($allHakAkses),
-            'updated_at'        => now(),
+            'username'   => 'vicky',
+            'password'   => Hash::make('admin123'),
+            'updated_at' => now(),
         ];
-        if (Schema::hasColumn('users', 'name')) $vickyData['name'] = 'Vicky Koroh (Platform Owner)';
-        if (Schema::hasColumn('users', 'email')) $vickyData['email'] = 'vicky@vxpos.id';
+        if (in_array('nama', $tableCols)) $vickyData['nama'] = 'Vicky Koroh (Platform Owner)';
+        if (in_array('name', $tableCols)) $vickyData['name'] = 'Vicky Koroh (Platform Owner)';
+        if (in_array('email', $tableCols)) $vickyData['email'] = 'vicky@vxpos.id';
+        if (in_array('toko_id', $tableCols)) $vickyData['toko_id'] = 1;
+        if (in_array('role', $tableCols)) $vickyData['role'] = 'superadmin';
+        if (in_array('is_platform_admin', $tableCols)) $vickyData['is_platform_admin'] = 1;
+        if (in_array('status', $tableCols)) $vickyData['status'] = 'aktif';
+        if (in_array('hak_akses', $tableCols)) $vickyData['hak_akses'] = json_encode($allHakAkses);
 
+        $vicky = DB::table('users')->where('username', 'vicky')->first();
         if (!$vicky) {
-            $vickyData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $vickyData['created_at'] = now();
             DB::table('users')->insert($vickyData);
         } else {
             DB::table('users')->where('id', $vicky->id)->update($vickyData);
         }
 
         // 2. Akun Super Admin: admin
-        $admin = DB::table('users')->where('username', 'admin')->first();
         $adminData = [
-            'toko_id'           => 1,
-            'nama'              => 'Super Admin Utama',
-            'username'          => 'admin',
-            'password'          => Hash::make('admin123'),
-            'role'              => 'superadmin',
-            'is_platform_admin' => 1,
-            'status'            => 'aktif',
-            'hak_akses'         => json_encode($allHakAkses),
-            'updated_at'        => now(),
+            'username'   => 'admin',
+            'password'   => Hash::make('admin123'),
+            'updated_at' => now(),
         ];
-        if (Schema::hasColumn('users', 'name')) $adminData['name'] = 'Super Admin Utama';
-        if (Schema::hasColumn('users', 'email')) $adminData['email'] = 'admin@vxpos.id';
+        if (in_array('nama', $tableCols)) $adminData['nama'] = 'Super Admin Utama';
+        if (in_array('name', $tableCols)) $adminData['name'] = 'Super Admin Utama';
+        if (in_array('email', $tableCols)) $adminData['email'] = 'admin@vxpos.id';
+        if (in_array('toko_id', $tableCols)) $adminData['toko_id'] = 1;
+        if (in_array('role', $tableCols)) $adminData['role'] = 'superadmin';
+        if (in_array('is_platform_admin', $tableCols)) $adminData['is_platform_admin'] = 1;
+        if (in_array('status', $tableCols)) $adminData['status'] = 'aktif';
+        if (in_array('hak_akses', $tableCols)) $adminData['hak_akses'] = json_encode($allHakAkses);
 
+        $admin = DB::table('users')->where('username', 'admin')->first();
         if (!$admin) {
-            $adminData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $adminData['created_at'] = now();
             DB::table('users')->insert($adminData);
         } else {
             DB::table('users')->where('id', $admin->id)->update($adminData);
         }
 
-        // 3. Upgrade semua user yang memiliki role = 'superadmin' agar langsung mendapatkan hak Platform Admin
-        DB::table('users')->where('role', 'superadmin')->update([
-            'is_platform_admin' => 1,
-            'status'            => 'aktif',
-        ]);
+        // 3. Upgrade semua user yang memiliki role = 'superadmin'
+        if (in_array('is_platform_admin', $tableCols)) {
+            DB::table('users')->where('role', 'superadmin')->update([
+                'is_platform_admin' => 1,
+                'status'            => 'aktif',
+            ]);
+        }
     }
 
     /**

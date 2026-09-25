@@ -56,24 +56,21 @@ class UserController extends Controller
             'hak_akses' => 'nullable|array' // Menangkap data checkbox
         ]);
 
+        $tableCols = Schema::getColumnListing('users');
         $userData = [
-            'toko_id'    => $tokoId,
-            'nama'       => $request->nama,
             'username'   => $request->username,
-            'password'   => Hash::make($request->password), // Enkripsi sandi
-            'role'       => $request->role,
-            'status'     => $request->status,
-            'hak_akses'  => json_encode($request->hak_akses ?? []), // Konversi ke JSON
-            'created_at' => now(),
+            'password'   => Hash::make($request->password),
             'updated_at' => now(),
         ];
 
-        if (Schema::hasColumn('users', 'name')) {
-            $userData['name'] = $request->nama;
-        }
-        if (Schema::hasColumn('users', 'email')) {
-            $userData['email'] = $request->username . '@' . ($tokoId ?? '1') . '.vxpos.local';
-        }
+        if (in_array('created_at', $tableCols)) $userData['created_at'] = now();
+        if (in_array('nama', $tableCols)) $userData['nama'] = $request->nama;
+        if (in_array('name', $tableCols)) $userData['name'] = $request->nama;
+        if (in_array('email', $tableCols)) $userData['email'] = $request->username . '@' . ($tokoId ?? '1') . '.vxpos.local';
+        if (in_array('toko_id', $tableCols)) $userData['toko_id'] = $tokoId;
+        if (in_array('role', $tableCols)) $userData['role'] = $request->role;
+        if (in_array('status', $tableCols)) $userData['status'] = $request->status;
+        if (in_array('hak_akses', $tableCols)) $userData['hak_akses'] = json_encode($request->hak_akses ?? []);
 
         DB::table('users')->insert($userData);
 

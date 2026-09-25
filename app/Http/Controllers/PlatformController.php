@@ -135,25 +135,22 @@ class PlatformController extends Controller
                 'kelola_bonus', 'manajemen_user'
             ];
 
+            $tableCols = Schema::getColumnListing('users');
             $newAdminData = [
-                'toko_id'           => $tokoId,
-                'nama'              => $request->admin_nama,
-                'username'          => $request->admin_username,
-                'password'          => Hash::make($request->admin_password),
-                'role'              => 'admin',
-                'is_platform_admin' => 0,
-                'status'            => 'aktif',
-                'hak_akses'         => json_encode($semuaHakAkses),
-                'created_at'        => now(),
-                'updated_at'        => now(),
+                'username'   => $request->admin_username,
+                'password'   => Hash::make($request->admin_password),
+                'updated_at' => now(),
             ];
 
-            if (Schema::hasColumn('users', 'name')) {
-                $newAdminData['name'] = $request->admin_nama;
-            }
-            if (Schema::hasColumn('users', 'email')) {
-                $newAdminData['email'] = $request->admin_username . '@vxpos.id';
-            }
+            if (in_array('created_at', $tableCols)) $newAdminData['created_at'] = now();
+            if (in_array('nama', $tableCols)) $newAdminData['nama'] = $request->admin_nama;
+            if (in_array('name', $tableCols)) $newAdminData['name'] = $request->admin_nama;
+            if (in_array('email', $tableCols)) $newAdminData['email'] = $request->admin_username . '@vxpos.id';
+            if (in_array('toko_id', $tableCols)) $newAdminData['toko_id'] = $tokoId;
+            if (in_array('role', $tableCols)) $newAdminData['role'] = 'admin';
+            if (in_array('is_platform_admin', $tableCols)) $newAdminData['is_platform_admin'] = 0;
+            if (in_array('status', $tableCols)) $newAdminData['status'] = 'aktif';
+            if (in_array('hak_akses', $tableCols)) $newAdminData['hak_akses'] = json_encode($semuaHakAkses);
 
             DB::table('users')->insert($newAdminData);
 

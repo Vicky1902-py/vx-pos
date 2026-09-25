@@ -15,32 +15,78 @@ class DemoStoreService
     public static function generate(): array
     {
         try {
-            // 1. Buat atau perbarui Toko Demo
-            $toko = DB::table('toko')->where('slug', 'toko-demo')->first();
-            if (!$toko) {
-                $tokoId = DB::table('toko')->insertGetId([
-                    'nama_toko'  => 'Toko Retail Demo (VxPOS)',
-                    'slug'       => 'toko-demo',
-                    'alamat'     => 'Jl. Simulasi Bisnis No. 88, Menteng, Jakarta',
-                    'no_telp'    => '0899-DEMO-VXPOS',
-                    'paket'      => 'pro',
-                    'status'     => 'aktif',
-                    'expired_at' => now()->addYears(2)->toDateString(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                $tokoId = $toko->id;
-                DB::table('toko')->where('id', $tokoId)->update([
-                    'nama_toko'  => 'Toko Retail Demo (VxPOS)',
-                    'paket'      => 'pro',
-                    'status'     => 'aktif',
-                    'expired_at' => now()->addYears(2)->toDateString(),
-                    'updated_at' => now(),
-                ]);
+            // 1. Pastikan tabel toko ada
+            if (!Schema::hasTable('toko')) {
+                Schema::create('toko', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->id();
+                    $table->string('nama_toko');
+                    $table->string('slug')->unique();
+                    $table->text('alamat')->nullable();
+                    $table->string('no_telp', 50)->nullable();
+                    $table->string('logo')->nullable();
+                    $table->string('paket', 50)->default('pro');
+                    $table->string('status', 20)->default('aktif');
+                    $table->date('expired_at')->nullable();
+                    $table->timestamps();
+                });
             }
 
-            // 2. Pengaturan Toko Demo
+            // Pastikan kolom-kolom penting di tabel users ada
+            if (Schema::hasTable('users')) {
+                $colsNeeded = [
+                    'toko_id'           => 'bigInteger',
+                    'nama'              => 'string',
+                    'name'              => 'string',
+                    'username'          => 'string',
+                    'email'             => 'string',
+                    'role'              => 'string',
+                    'is_platform_admin' => 'boolean',
+                    'status'            => 'string',
+                    'hak_akses'         => 'text',
+                ];
+                foreach ($colsNeeded as $c => $t) {
+                    try {
+                        if (!Schema::hasColumn('users', $c)) {
+                            Schema::table('users', function ($table) use ($c, $t) {
+                                if ($t === 'bigInteger') $table->unsignedBigInteger($c)->nullable()->default(1);
+                                elseif ($t === 'boolean') $table->boolean($c)->default(false);
+                                elseif ($t === 'text') $table->text($c)->nullable();
+                                else $table->string($c, 191)->nullable();
+                            });
+                        }
+                    } catch (\Throwable $e) {}
+                }
+            }
+
+            // 2. Buat atau perbarui Toko Demo
+            $tokoId = 1;
+            if (Schema::hasTable('toko')) {
+                $toko = DB::table('toko')->where('slug', 'toko-demo')->first();
+                if (!$toko) {
+                    $tokoId = DB::table('toko')->insertGetId([
+                        'nama_toko'  => 'Toko Retail Demo (VxPOS)',
+                        'slug'       => 'toko-demo',
+                        'alamat'     => 'Jl. Simulasi Bisnis No. 88, Menteng, Jakarta',
+                        'no_telp'    => '0899-DEMO-VXPOS',
+                        'paket'      => 'pro',
+                        'status'     => 'aktif',
+                        'expired_at' => now()->addYears(2)->toDateString(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    $tokoId = $toko->id;
+                    DB::table('toko')->where('id', $tokoId)->update([
+                        'nama_toko'  => 'Toko Retail Demo (VxPOS)',
+                        'paket'      => 'pro',
+                        'status'     => 'aktif',
+                        'expired_at' => now()->addYears(2)->toDateString(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            // 3. Pengaturan Toko Demo
             if (Schema::hasTable('pengaturan_toko')) {
                 $cekPengaturan = DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first();
                 if (!$cekPengaturan) {
@@ -56,7 +102,7 @@ class DemoStoreService
                 }
             }
 
-            // 3. Buat Akun Pengguna Demo (Dijamin Berhasil dengan Email & Name Kompatibel)
+            // 4. Buat Akun Pengguna Demo
             $allHakAkses = [
                 'master_barang', 'manajemen_harga', 'transaksi_sales',
                 'stok_gudang', 'validasi_kasir', 'laporan_penjualan',
@@ -75,12 +121,12 @@ class DemoStoreService
             // Akun 4: Staf Gudang Demo
             self::upsertUser($tokoId, 'Agus (Staf Gudang Demo)', 'gudang_demo', 'demo123', 'gudang', ['stok_gudang']);
 
-            // 4. Sample Master Barang, Stok & Harga (Safe Try-Catch)
+            // 5. Sample Master Barang, Stok & Harga
             try {
                 self::seedSampleProducts($tokoId);
             } catch (\Throwable $e) {}
 
-            // 5. Sample Transaksi Realistis (Safe Try-Catch)
+            // 6. Sample Transaksi Realistis
             try {
                 self::seedSampleTransactions($tokoId, $salesUser ? $salesUser->id : null);
             } catch (\Throwable $e) {}
@@ -88,7 +134,7 @@ class DemoStoreService
             return [
                 'success' => true,
                 'toko_id' => $tokoId,
-                'message' => 'Akun demo dan Toko Retail Demo berhasil dibuat dan disinkronkan dengan data simulasi realistis!',
+                'message' => 'Akun demo dan Toko Retail Demo berhasil dibuat dan disinkronkan!',
             ];
         } catch (\Throwable $e) {
             return [
@@ -99,46 +145,38 @@ class DemoStoreService
     }
 
     /**
-     * Helper create or update user dengan perlindungan menyeluruh terhadap kolom email & name
+     * Helper create or update user dengan perlindungan menyeluruh terhadap kolom dinamis
      */
     private static function upsertUser(int $tokoId, string $nama, string $username, string $password, string $role, array $hakAkses)
     {
         if (!Schema::hasTable('users')) return null;
 
-        $user = DB::table('users')
-            ->where('username', $username)
-            ->when(Schema::hasColumn('users', 'email'), function ($q) use ($username) {
-                $q->orWhere('email', $username . '@vxpos.id');
-            })
-            ->first();
+        $tableCols = Schema::getColumnListing('users');
+
+        $user = DB::table('users')->where('username', $username)->first();
 
         $userData = [
-            'toko_id'           => $tokoId,
-            'nama'              => $nama,
-            'username'          => $username,
-            'password'          => Hash::make($password),
-            'role'              => $role,
-            'is_platform_admin' => 0,
-            'status'            => 'aktif',
-            'hak_akses'         => json_encode($hakAkses),
-            'updated_at'        => now(),
+            'username'   => $username,
+            'password'   => Hash::make($password),
+            'updated_at' => now(),
         ];
 
-        // Pastikan kompatibel jika tabel users memiliki kolom bawaan Laravel 'name' & 'email'
-        if (Schema::hasColumn('users', 'name')) {
-            $userData['name'] = $nama;
-        }
-        if (Schema::hasColumn('users', 'email')) {
-            $userData['email'] = $username . '@vxpos.id';
-        }
+        if (in_array('nama', $tableCols)) $userData['nama'] = $nama;
+        if (in_array('name', $tableCols)) $userData['name'] = $nama;
+        if (in_array('email', $tableCols)) $userData['email'] = $username . '@vxpos.id';
+        if (in_array('role', $tableCols)) $userData['role'] = $role;
+        if (in_array('status', $tableCols)) $userData['status'] = 'aktif';
+        if (in_array('toko_id', $tableCols)) $userData['toko_id'] = $tokoId;
+        if (in_array('is_platform_admin', $tableCols)) $userData['is_platform_admin'] = 0;
+        if (in_array('hak_akses', $tableCols)) $userData['hak_akses'] = json_encode($hakAkses);
 
         if (!$user) {
-            $userData['created_at'] = now();
+            if (in_array('created_at', $tableCols)) $userData['created_at'] = now();
             $userId = DB::table('users')->insertGetId($userData);
-            return (object) ['id' => $userId];
+            return (object) ['id' => $userId, 'nama' => $nama, 'username' => $username];
         } else {
             DB::table('users')->where('id', $user->id)->update($userData);
-            return $user;
+            return (object) array_merge((array) $user, $userData);
         }
     }
 

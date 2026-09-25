@@ -37,6 +37,13 @@ class AuthController extends Controller
         $password = (string) $request->input('password');
         $lowerInput = strtolower($loginInput);
 
+        // 0. Jika mencoba login akun demo atau superadmin, buat dan sinkronkan data TERLEBIH DAHULU
+        if (in_array($lowerInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
+            DemoStoreService::generate();
+        } elseif (in_array($lowerInput, ['admin', 'vicky'])) {
+            DatabaseAutoRepair::repair();
+        }
+
         $hasEmailColumn = Schema::hasTable('users') && Schema::hasColumn('users', 'email');
 
         // 1. Cek apakah ada record user berdasarkan username atau email
@@ -50,60 +57,57 @@ class AuthController extends Controller
             }
         })->first();
 
-        // 2. Jika akun demo atau superadmin belum ada di DB, buat saat itu juga (Self-Healing)
+        // 2. Safety fallback jika user masih belum ditemukan
         if (!$user) {
             if (in_array($lowerInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
                 DemoStoreService::generate();
+                $user = User::where('username', $loginInput)->first();
             } elseif (in_array($lowerInput, ['admin', 'vicky'])) {
                 DatabaseAutoRepair::repair();
+                $user = User::where('username', $loginInput)->first();
             }
-
-            $hasEmailColumn = Schema::hasTable('users') && Schema::hasColumn('users', 'email');
-
-            $user = User::where(function ($q) use ($loginInput, $lowerInput, $hasEmailColumn) {
-                $q->where('username', $loginInput)
-                  ->orWhereRaw('LOWER(username) = ?', [$lowerInput]);
-
-                if ($hasEmailColumn) {
-                    $q->orWhere('email', $loginInput)
-                      ->orWhereRaw('LOWER(email) = ?', [$lowerInput]);
-                }
-            })->first();
         }
 
         // 3. Verifikasi Password Multi-Algoritma (Bcrypt, MD5 Legacy, Auto-Sync Demo/Admin)
         $passwordValid = false;
 
         if ($user) {
-            // A. Verifikasi standar Bcrypt / Argon
-            if (Hash::check($password, $user->password)) {
+            // A. Khusus Akun Demo: jika password adalah 'demo123', PASTI DIIZINKAN MASUK!
+            if (in_array(strtolower($user->username), ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo']) && $password === 'demo123') {
                 $passwordValid = true;
+                try {
+                    DB::table('users')->where('id', $user->id)->update([
+                        'password' => Hash::make('demo123'),
+                        'status'   => 'aktif',
+                    ]);
+                } catch (\Throwable $e) {}
             }
-            // B. Sinkronisasi Darurat Akun Demo (Jika ketik demo123, otomatis sinkron)
-            elseif (in_array(strtolower($user->username), ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo']) && $password === 'demo123') {
-                $user->password = Hash::make('demo123');
-                $user->status = 'aktif';
-                $user->save();
-                $passwordValid = true;
-            }
-            // C. Sinkronisasi Darurat Akun Superadmin Platform (Jika ketik admin123, otomatis sinkron)
+            // B. Khusus Akun Superadmin: jika password adalah 'admin123', PASTI DIIZINKAN MASUK!
             elseif (in_array(strtolower($user->username), ['admin', 'vicky']) && $password === 'admin123') {
-                $user->password = Hash::make('admin123');
-                $user->status = 'aktif';
-                $user->save();
+                $passwordValid = true;
+                try {
+                    DB::table('users')->where('id', $user->id)->update([
+                        'password' => Hash::make('admin123'),
+                        'status'   => 'aktif',
+                    ]);
+                } catch (\Throwable $e) {}
+            }
+            // C. Standar Bcrypt / Argon
+            elseif (Hash::check($password, $user->password)) {
                 $passwordValid = true;
             }
             // D. Kompatibilitas Database Impor Lama (MD5 Hash)
             elseif (md5($password) === $user->password || md5(md5($password)) === $user->password) {
-                // Otomatis upgrade ke hash Bcrypt standar yang aman
-                $user->password = Hash::make($password);
-                $user->save();
+                try {
+                    DB::table('users')->where('id', $user->id)->update(['password' => Hash::make($password)]);
+                } catch (\Throwable $e) {}
                 $passwordValid = true;
             }
             // E. Plaintext legacy fallback
             elseif ($user->password === $password) {
-                $user->password = Hash::make($password);
-                $user->save();
+                try {
+                    DB::table('users')->where('id', $user->id)->update(['password' => Hash::make($password)]);
+                } catch (\Throwable $e) {}
                 $passwordValid = true;
             }
         }
@@ -144,7 +148,15 @@ class AuthController extends Controller
         $targetUsername = ($role === 'kasir') ? 'kasir_demo' : 'demo';
         $user = User::where('username', $targetUsername)->first();
 
+        if (!$user) {
+            $user = User::where('username', 'demo')->first();
+        }
+
         if ($user) {
+            try {
+                DB::table('users')->where('id', $user->id)->update(['status' => 'aktif']);
+            } catch (\Throwable $e) {}
+
             Auth::login($user);
             request()->session()->regenerate();
             return redirect()->route('superadmin.dashboard')

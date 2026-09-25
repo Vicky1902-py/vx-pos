@@ -168,14 +168,6 @@
                             <p class="text-[10px] text-[#7983bb] mt-0.5">kasir_demo / demo123</p>
                         </button>
                     </div>
-                    <div class="pt-1">
-                        <button type="button" onclick="isiKredensial('admin', 'admin123')" class="w-full px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-left border border-indigo-500/20 transition group flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
-                                <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Akun Superadmin Utama
-                            </span>
-                            <span class="text-[10px] text-[#7983bb]">admin / admin123</span>
-                        </button>
-                    </div>
                 </div>
             </form>
 

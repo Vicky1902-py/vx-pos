@@ -1,7 +1,12 @@
 @php
-    $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
-    $logoPath = ($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null;
-    $namaToko = $pengaturan->nama_toko ?? 'Chanada AutoParts';
+    $tokoAktif = \App\Services\TenantManager::getActiveToko();
+    $tokoId = \App\Services\TenantManager::getTokoId();
+    $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first() 
+                ?? \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
+    $logoPath = ($tokoAktif && $tokoAktif->logo) ? asset('uploads/logo/' . $tokoAktif->logo) 
+                : (($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null);
+    $namaToko = $tokoAktif->nama_toko ?? ($pengaturan->nama_toko ?? 'Chanada AutoParts');
+    $isPlatformAdmin = \App\Services\TenantManager::isPlatformAdmin();
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -180,9 +185,17 @@
                         <span class="ml-3 text-[15px]">Manajemen User</span>
                     </a>
                 </li>
+                @if($isPlatformAdmin || $isGod)
+                <li>
+                    <a href="{{ route('superadmin.toko.index') }}" class="flex items-center p-3 rounded-lg group transition-all {{ request()->is('superadmin/toko*') ? 'sidebar-active' : 'text-gray-600 hover:bg-gray-50' }}">
+                        <i class="fa-solid fa-shop w-5 h-5 transition duration-75"></i>
+                        <span class="ml-3 text-[15px]">Multi-Toko & Mitra</span>
+                    </a>
+                </li>
+                @endif
                 <li>
                     <a href="{{ route('superadmin.pengaturan.index') }}" class="flex items-center p-3 rounded-lg group transition-all {{ request()->is('superadmin/pengaturan*') ? 'sidebar-active' : 'text-gray-600 hover:bg-gray-50' }}">
-                        <i class="fa-solid fa-store w-5 h-5 transition duration-75"></i>
+                        <i class="fa-solid fa-gear w-5 h-5 transition duration-75"></i>
                         <span class="ml-3 text-[15px]">Pengaturan Toko</span>
                     </a>
                 </li>
@@ -217,7 +230,19 @@
                 <i id="mobile-menu-btn" class="fa-solid fa-bars mr-3 lg:mr-4 cursor-pointer text-xl lg:hidden hover:text-indigo-600 transition-colors"></i>
                 <span class="font-medium hidden sm:inline-block">Selamat Datang, <span class="text-indigo-600 font-bold">{{ Auth::user()->nama }}</span> <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded ml-2 uppercase">{{ Auth::user()->role }}</span></span>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
+                @if($isPlatformAdmin)
+                    <a href="{{ route('superadmin.toko.index') }}" title="Klik untuk ganti cabang/toko aktif" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-all">
+                        <i class="fa-solid fa-shop text-indigo-500"></i>
+                        <span class="max-w-[160px] truncate">{{ $namaToko }}</span>
+                        <i class="fa-solid fa-arrows-rotate text-[10px] text-indigo-400"></i>
+                    </a>
+                @else
+                    <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-xs font-bold text-gray-700">
+                        <i class="fa-solid fa-shop text-gray-500"></i>
+                        <span class="max-w-[160px] truncate">{{ $namaToko }}</span>
+                    </span>
+                @endif
                 <div class="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold border-2 border-white shadow-md cursor-pointer hover:shadow-lg transition-all">
                     {{ substr(Auth::user()->nama, 0, 1) }}
                 </div>

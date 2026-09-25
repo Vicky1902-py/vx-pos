@@ -30,23 +30,40 @@ class ValidasiKasirController extends Controller
     // Aksi Kasir: Menyetujui transaksi
     public function approve($id)
     {
+        DB::beginTransaction();
         try {
-            // Ambil data transaksi terlebih dahulu untuk mengetahui total tagihannya
             $transaksi = DB::table('transaksi')->where('id', $id)->first();
             
-            if($transaksi) {
-                // PERBAIKAN: Status di-update menjadi 'selesai', dp menjadi full (sama dengan total), piutang menjadi 0 (Lunas)
+            if ($transaksi) {
+                $sisaPelunasan = (float) $transaksi->piutang;
+
                 DB::table('transaksi')->where('id', $id)->update([
-                    'status'  => 'selesai',
-                    'dp'      => $transaksi->total_transaksi,
-                    'piutang' => 0
+                    'status'     => 'selesai',
+                    'dp'         => $transaksi->total_transaksi,
+                    'piutang'    => 0,
+                    'updated_at' => now(),
                 ]);
+
+                // Rekam pencatatan pelunasan di riwayat cicilan jika ada sisa piutang
+                if ($sisaPelunasan > 0) {
+                    DB::table('riwayat_cicilan')->insert([
+                        'toko_id'       => $transaksi->toko_id ?? 1,
+                        'transaksi_id'  => $id,
+                        'nominal_bayar' => $sisaPelunasan,
+                        'keterangan'    => 'Pelunasan Akhir Kasir',
+                        'tanggal_bayar' => now(),
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
+                    ]);
+                }
             }
-            
+
+            DB::commit();
             return redirect()->route('superadmin.kasir.index')->with('success', 'Pembayaran valid! Transaksi disetujui, Lunas, dan Nota siap dicetak.');
             
         } catch (\Exception $e) {
-            dd("SISTEM MENDETEKSI ERROR DATABASE: " . $e->getMessage());
+            DB::rollBack();
+            return redirect()->back()->withErrors('Gagal menyetujui transaksi: ' . $e->getMessage());
         }
     }
 

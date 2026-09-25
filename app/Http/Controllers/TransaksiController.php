@@ -5,21 +5,26 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\TenantManager;
 
 class TransaksiController extends Controller
 {
     public function create(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
 
-        $listSales = DB::table('users')->select('id', 'nama', 'role')->get(); 
+        $listSales = DB::table('users')
+            ->where('toko_id', $tokoId)
+            ->select('id', 'nama', 'role')
+            ->get(); 
 
         $barang = DB::table('barang')
             ->join('stok', 'barang.id', '=', 'stok.barang_id')
             ->join('harga', 'barang.id', '=', 'harga.barang_id')
-            // [PERBAIKAN] Tambahkan harga_minimum agar ditarik ke keranjang POS
             ->select('barang.id', 'barang.kode_barang', 'barang.nama_barang', 'barang.kategori', 'stok.stok_tersedia', 'harga.harga_jual', 'harga.diskon_rupiah', 'harga.harga_minimum')
             ->where('barang.status', 'aktif')
+            ->where('barang.toko_id', $tokoId)
             ->where('stok.stok_tersedia', '>', 0)
             ->whereNotNull('harga.harga_jual')
             ->when($search, function ($query, $search) {
@@ -85,9 +90,12 @@ class TransaksiController extends Controller
                 $subtotalSeluruhBarang += $subtotal;
                 $totalDiskonTransaksi += ($diskonItem * $jumlahBarang);
 
+                $hargaModal = $hargaDb ? (float) $hargaDb->harga_modal : 0;
+
                 $dataDetailSementara[] = [
                     'barang_id'   => $barangId,
                     'jumlah'      => $jumlahBarang,
+                    'harga_modal' => $hargaModal,
                     'harga_jual'  => $hargaJualRiil,
                     'diskon_item' => $diskonItem, 
                     'subtotal'    => $subtotal,
@@ -97,6 +105,8 @@ class TransaksiController extends Controller
             if ($subtotalSeluruhBarang <= 0) {
                 return redirect()->back()->withErrors('Gagal memproses transaksi. Jumlah barang tidak valid.');
             }
+
+            $tokoId = TenantManager::getTokoId();
 
             // Total Akhir kini murni dari subtotal yang sudah dipotong diskon masing-masing item
             $totalAkhir = $subtotalSeluruhBarang;
@@ -108,6 +118,7 @@ class TransaksiController extends Controller
             $idSalesDitunjuk = $request->sales_id ? $request->sales_id : Auth::id();
 
             $transaksiId = DB::table('transaksi')->insertGetId([
+                'toko_id'         => $tokoId,
                 'no_invoice'      => $noInvoice,
                 'sales_id'        => $idSalesDitunjuk, 
                 'pelanggan_id'    => null,
@@ -123,19 +134,24 @@ class TransaksiController extends Controller
 
             if ($dp > 0) {
                 DB::table('riwayat_cicilan')->insert([
+                    'toko_id'       => $tokoId,
                     'transaksi_id'  => $transaksiId,
                     'nominal_bayar' => $dp,
                     'keterangan'    => 'Pembayaran Uang Muka (DP Awal)',
-                    'tanggal_bayar' => now()
+                    'tanggal_bayar' => now(),
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
                 ]);
             }
 
             $detailData = [];
             foreach ($dataDetailSementara as $detail) {
                 $detailData[] = [
+                    'toko_id'      => $tokoId,
                     'transaksi_id' => $transaksiId,
                     'barang_id'    => $detail['barang_id'],
                     'jumlah'       => $detail['jumlah'],
+                    'harga_modal'  => $detail['harga_modal'],
                     'harga_jual'   => $detail['harga_jual'],
                     'diskon_item'  => $detail['diskon_item'], 
                     'subtotal'     => $detail['subtotal'],
@@ -146,6 +162,7 @@ class TransaksiController extends Controller
             DB::table('detail_transaksi')->insert($detailData);
 
             DB::table('permintaan_gudang')->insert([
+                'toko_id'      => $tokoId,
                 'transaksi_id' => $transaksiId,
                 'status'       => 'menunggu',
                 'created_at'   => now(),
@@ -163,10 +180,12 @@ class TransaksiController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
         
         $transaksi = DB::table('transaksi')
             ->leftJoin('users as sales', 'transaksi.sales_id', '=', 'sales.id')
             ->select('transaksi.*', 'sales.nama as nama_sales')
+            ->where('transaksi.toko_id', $tokoId)
             ->when($search, function($query, $search) {
                 return $query->where('transaksi.no_invoice', 'like', "%{$search}%");
             })
@@ -178,8 +197,41 @@ class TransaksiController extends Controller
 
     public function destroy($id)
     {
-        DB::table('transaksi')->where('id', $id)->delete();
-        return redirect()->back()->with('success', 'Data transaksi berhasil dihapus sepenuhnya.');
+        DB::beginTransaction();
+        try {
+            $transaksi = DB::table('transaksi')->where('id', $id)->first();
+            if (!$transaksi) {
+                return redirect()->back()->withErrors('Transaksi tidak ditemukan.');
+            }
+
+            // Jika pesanan sudah disiapkan gudang atau selesai, kembalikan stok fisik ke gudang!
+            if (in_array($transaksi->status, ['disiapkan_gudang', 'selesai'])) {
+                $details = DB::table('detail_transaksi')->where('transaksi_id', $id)->get();
+                foreach ($details as $dt) {
+                    $stok = DB::table('stok')->where('barang_id', $dt->barang_id)->first();
+                    if ($stok) {
+                        $stokBaru = $stok->stok_tersedia + $dt->jumlah;
+                        $statusWarning = ($stokBaru <= $stok->stok_minimum) ? 'warning' : 'aman';
+                        DB::table('stok')->where('barang_id', $dt->barang_id)->update([
+                            'stok_tersedia'  => $stokBaru,
+                            'status_warning' => $statusWarning,
+                            'updated_at'     => now(),
+                        ]);
+                    }
+                }
+            }
+
+            DB::table('detail_transaksi')->where('transaksi_id', $id)->delete();
+            DB::table('permintaan_gudang')->where('transaksi_id', $id)->delete();
+            DB::table('riwayat_cicilan')->where('transaksi_id', $id)->delete();
+            DB::table('transaksi')->where('id', $id)->delete();
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Data transaksi berhasil dihapus dan stok gudang otomatis dikembalikan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withErrors('Gagal menghapus transaksi: ' . $e->getMessage());
+        }
     }
     
     public function printNota($id)

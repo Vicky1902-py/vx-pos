@@ -5,16 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\TenantManager;
 
 class SuperAdminController extends Controller
 {
     public function dashboard()
     {
+        $tokoId = TenantManager::getTokoId();
         $bulanIni = Carbon::now()->month;
         $tahunIni = Carbon::now()->year;
 
         // 1. Total Omzet
         $totalOmzet = DB::table('transaksi')
+            ->where('toko_id', $tokoId)
             ->where('status', 'selesai')
             ->whereMonth('created_at', $bulanIni)
             ->whereYear('created_at', $tahunIni)
@@ -22,6 +25,7 @@ class SuperAdminController extends Controller
 
         // 2. Penjualan Sales
         $penjualanSales = DB::table('transaksi')
+            ->where('toko_id', $tokoId)
             ->where('status', 'selesai')
             ->whereMonth('created_at', $bulanIni)
             ->whereYear('created_at', $tahunIni)
@@ -29,18 +33,21 @@ class SuperAdminController extends Controller
 
         // 3. Stok Rendah
         $stokRendah = DB::table('stok')
-            ->whereRaw('stok_tersedia <= stok_minimum')
+            ->join('barang', 'stok.barang_id', '=', 'barang.id')
+            ->where('barang.toko_id', $tokoId)
+            ->whereRaw('stok.stok_tersedia <= stok.stok_minimum')
             ->count();
 
         // 4. Bonus Bulan Ini
         $bonusBulanIni = DB::table('pencairan_bonus')
+            ->where('toko_id', $tokoId)
             ->whereMonth('created_at', $bulanIni)
             ->whereYear('created_at', $tahunIni)
             ->sum('total_bonus');
 
-        // [BARU] 5. Data Grafik Arus Kas (Terbayar vs Piutang)
-        $kasTerbayar = DB::table('transaksi')->sum('dp');
-        $kasPiutang = DB::table('transaksi')->sum('piutang');
+        // 5. Data Grafik Arus Kas (Terbayar vs Piutang)
+        $kasTerbayar = DB::table('transaksi')->where('toko_id', $tokoId)->sum('dp');
+        $kasPiutang = DB::table('transaksi')->where('toko_id', $tokoId)->sum('piutang');
 
         // 6. Data Grafik Pendapatan 7 Hari Terakhir
         $grafikTanggal = [];
@@ -51,6 +58,7 @@ class SuperAdminController extends Controller
             $grafikTanggal[] = $date->translatedFormat('D'); 
             
             $totalHariIni = DB::table('transaksi')
+                ->where('toko_id', $tokoId)
                 ->where('status', 'selesai')
                 ->whereDate('created_at', $date->format('Y-m-d'))
                 ->sum('total_transaksi');
@@ -62,6 +70,7 @@ class SuperAdminController extends Controller
         $produkTerlaris = DB::table('detail_transaksi')
             ->join('transaksi', 'detail_transaksi.transaksi_id', '=', 'transaksi.id')
             ->join('barang', 'detail_transaksi.barang_id', '=', 'barang.id')
+            ->where('transaksi.toko_id', $tokoId)
             ->where('transaksi.status', 'selesai')
             ->whereMonth('transaksi.created_at', $bulanIni)
             ->whereYear('transaksi.created_at', $tahunIni)
@@ -76,10 +85,10 @@ class SuperAdminController extends Controller
             'penjualanSales', 
             'stokRendah', 
             'bonusBulanIni', 
-            'kasTerbayar',
-            'kasPiutang',
+            'kasTerbayar', 
+            'kasPiutang', 
             'grafikTanggal', 
-            'grafikPendapatan',
+            'grafikPendapatan', 
             'produkTerlaris'
         ));
     }

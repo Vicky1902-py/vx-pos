@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\TenantManager;
 
 class BarangController extends Controller
 {
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
+
         $barang = DB::table('barang')
             ->leftJoin('stok', 'barang.id', '=', 'stok.barang_id')
             ->leftJoin('harga', 'barang.id', '=', 'harga.barang_id') 
@@ -23,6 +26,7 @@ class BarangController extends Controller
                 'harga.harga_jual',
                 'harga.diskon_rupiah' // [BARU]
             )
+            ->where('barang.toko_id', $tokoId)
             ->when($search, function ($query, $search) {
                 return $query->where('barang.kode_barang', 'like', "%{$search}%")
                              ->orWhere('barang.nama_barang', 'like', "%{$search}%")
@@ -36,8 +40,10 @@ class BarangController extends Controller
 
     public function store(Request $request)
     {
+        $tokoId = TenantManager::getTokoId();
+
         $request->validate([
-            'kode_barang'   => 'required|unique:barang,kode_barang',
+            'kode_barang'   => 'required',
             'nama_barang'   => 'required',
             'kategori'      => 'required',
             'satuan'        => 'required',
@@ -53,6 +59,7 @@ class BarangController extends Controller
         DB::beginTransaction();
         try {
             $barangId = DB::table('barang')->insertGetId([
+                'toko_id'     => $tokoId,
                 'kode_barang' => $request->kode_barang,
                 'nama_barang' => $request->nama_barang,
                 'kategori'    => $request->kategori,
@@ -189,7 +196,10 @@ class BarangController extends Controller
                     continue;
                 }
 
-                $existingBarang = DB::table('barang')->where('kode_barang', $kode)->first();
+                $existingBarang = DB::table('barang')
+                    ->where('kode_barang', $kode)
+                    ->where('toko_id', $tokoId)
+                    ->first();
 
                 if ($existingBarang) {
                     $barangId = $existingBarang->id;
@@ -226,6 +236,7 @@ class BarangController extends Controller
                     
                 } else {
                     $barangId = DB::table('barang')->insertGetId([
+                        'toko_id'     => $tokoId,
                         'kode_barang' => $kode,
                         'nama_barang' => $nama,
                         'kategori'    => $kategori ?? 'Umum',

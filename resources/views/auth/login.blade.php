@@ -1,4 +1,4 @@
-@php
+锘緻php
     $pengaturan = \Illuminate\Support\Facades\DB::table('pengaturan_toko')->first();
     $logoPath = ($pengaturan && $pengaturan->logo) ? asset('uploads/logo/' . $pengaturan->logo) : null;
     $namaToko = $pengaturan->nama_toko ?? 'Chanada Auto Parts';
@@ -10,11 +10,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - {{ $namaToko }}</title>
     
-    <!-- Dynamic Favicon -->
     @if($logoPath)
         <link rel="icon" type="image/png" href="{{ $logoPath }}">
     @else
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>馃殫</text></svg>">
     @endif
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,8 +31,6 @@
 <body class="min-h-screen flex overflow-hidden">
 
     <div class="hidden lg:flex w-2/3 items-center justify-center relative p-10">
-        
-        <!-- Dinamis Logo Desktop Kiri Atas (DIPERBESAR & DIRAPIKAN) -->
         <div class="absolute top-8 left-10 flex items-center gap-3">
             @if($logoPath)
                 <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-16 md:h-20 w-auto object-contain bg-white p-2.5 rounded-xl shadow-lg">
@@ -68,20 +65,19 @@
                     <h3 class="text-2xl font-bold text-heading">842</h3>
                     <span class="text-[#00cfe8] text-xs font-semibold mb-1"><i class="fa-solid fa-truck-fast"></i> Aktif</span>
                 </div>
-                <div class="flex gap-1 mt-3">
-                    <div class="h-6 w-2 bg-[#7367f0] rounded-sm opacity-40"></div>
-                    <div class="h-8 w-2 bg-[#7367f0] rounded-sm opacity-60"></div>
-                    <div class="h-5 w-2 bg-[#7367f0] rounded-sm opacity-30"></div>
-                    <div class="h-10 w-2 bg-[#7367f0] rounded-sm"></div>
-                </div>
             </div>
         </div>
     </div>
 
     <div class="w-full lg:w-1/3 bg-panel flex items-center justify-center p-8 sm:p-12 shadow-[-10px_0_30px_rgba(0,0,0,0.2)] relative z-30">
         <div class="w-full max-w-md">
-            
-            <!-- Dinamis Logo Mobile Atas (DIPERBESAR) -->
+            <div class="mb-6">
+                <a href="{{ route('landing') }}" class="inline-flex items-center gap-2 text-xs text-[#7983bb] hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/5">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                    <span>Kembali ke Beranda Utama</span>
+                </a>
+            </div>
+
             <div class="flex lg:hidden items-center gap-3 mb-8">
                 @if($logoPath)
                     <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-14 w-auto object-contain bg-white p-2 rounded-xl shadow-md">
@@ -94,7 +90,6 @@
             </div>
 
             <div class="mb-8">
-                <!-- PERBAIKAN KARAKTER ANEH: Menghapus emoji yang merusak struktur UTF-8 -->
                 <h2 class="text-2xl font-semibold text-heading mb-2">Welcome to {{ explode(' ', $namaToko)[0] }}!</h2>
                 <p class="text-muted text-sm">Sistem Manajemen Penjualan & Distribusi. Silakan masuk ke akun Anda.</p>
             </div>
@@ -109,7 +104,7 @@
                 </div>
             @endif
 
-            <form action="/" method="POST" class="space-y-5">
+            <form action="{{ route('login') }}" method="POST" class="space-y-5">
                 @csrf
                 
                 <div>
@@ -125,7 +120,6 @@
                         <label class="block text-heading text-[13px] font-medium" for="password">Password</label>
                     </div>
                     <div class="relative">
-                        <!-- PERBAIKAN KARAKTER ANEH: Mengganti titik aneh dengan bintang (*) standar -->
                         <input class="w-full bg-input border border-input rounded-lg py-2.5 pl-4 pr-10 text-heading text-sm transition-all focus:outline-none focus:border-[#7367f0] focus:ring-1 focus:ring-[#7367f0]" 
                                id="password" name="password" type="password" placeholder="********" required>
                         <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#7983bb] cursor-pointer hover:text-heading">

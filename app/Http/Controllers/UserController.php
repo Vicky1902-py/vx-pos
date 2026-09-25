@@ -5,20 +5,28 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Services\TenantManager;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
+        $isPlatform = TenantManager::isPlatformAdmin();
         
         $users = DB::table('users')
-            ->when($search, function ($query, $search) {
-                return $query->where('nama', 'like', "%{$search}%")
-                             ->orWhere('username', 'like', "%{$search}%")
-                             ->orWhere('role', 'like', "%{$search}%");
+            ->leftJoin('toko', 'users.toko_id', '=', 'toko.id')
+            ->select('users.*', 'toko.nama_toko')
+            ->when(!$isPlatform, function ($q) use ($tokoId) {
+                return $q->where('users.toko_id', $tokoId);
             })
-            ->orderBy('id', 'desc')
+            ->when($search, function ($query, $search) {
+                return $query->where('users.nama', 'like', "%{$search}%")
+                             ->orWhere('users.username', 'like', "%{$search}%")
+                             ->orWhere('users.role', 'like', "%{$search}%");
+            })
+            ->orderBy('users.id', 'desc')
             ->paginate(10);
 
         return view('superadmin.user.index', compact('users'));
@@ -26,6 +34,8 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $tokoId = TenantManager::getTokoId();
+
         $request->validate([
             'nama'      => 'required|string|max:255',
             'username'  => 'required|string|max:50|unique:users,username',
@@ -36,6 +46,7 @@ class UserController extends Controller
         ]);
 
         DB::table('users')->insert([
+            'toko_id'    => $tokoId,
             'nama'       => $request->nama,
             'username'   => $request->username,
             'password'   => Hash::make($request->password), // Enkripsi sandi

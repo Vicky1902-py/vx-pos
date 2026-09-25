@@ -5,59 +5,79 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\TenantManager;
 
 class BonusController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil daftar user yang memiliki peran 'sales' atau pernah mencatat transaksi
+        $tokoId = TenantManager::getTokoId();
+
+        // 1. Ambil daftar sales toko aktif
         $salesList = DB::table('users')
-            ->where('role', 'sales')
-            ->orWhereIn('id', function($query) {
-                $query->select('sales_id')->from('transaksi')->whereNotNull('sales_id');
+            ->where('toko_id', $tokoId)
+            ->where(function($q) use ($tokoId) {
+                $q->where('role', 'sales')
+                  ->orWhereIn('id', function($sub) use ($tokoId) {
+                      $sub->select('sales_id')->from('transaksi')->where('toko_id', $tokoId)->whereNotNull('sales_id');
+                  });
             })
             ->get();
 
+        // Tarik semua transaksi lunas toko ini sekaligus
+        $semuaTxLunas = DB::table('transaksi')
+            ->where('toko_id', $tokoId)
+            ->where('piutang', '<=', 0)
+            ->get()
+            ->groupBy('sales_id');
+
+        // Tarik semua detail transaksi lunas toko ini
+        $allTxIds = DB::table('transaksi')
+            ->where('toko_id', $tokoId)
+            ->where('piutang', '<=', 0)
+            ->pluck('id')
+            ->toArray();
+
+        $allDetails = DB::table('detail_transaksi')
+            ->join('barang', 'detail_transaksi.barang_id', '=', 'barang.id')
+            ->leftJoin('harga', 'barang.id', '=', 'harga.barang_id')
+            ->whereIn('detail_transaksi.transaksi_id', $allTxIds)
+            ->select('detail_transaksi.transaksi_id', 'detail_transaksi.jumlah', 'detail_transaksi.harga_modal as modal_historis', 'harga.harga_modal as modal_sekarang')
+            ->get()
+            ->groupBy('transaksi_id');
+
+        $semuaBonusCair = DB::table('pencairan_bonus')
+            ->where('toko_id', $tokoId)
+            ->select('sales_id', DB::raw('SUM(total_bonus) as total_cair'))
+            ->groupBy('sales_id')
+            ->pluck('total_cair', 'sales_id')
+            ->toArray();
+
         foreach ($salesList as $sales) {
-            // 2. Hitung Total Omzet khusus yang LUNAS
-            $transaksiLunas = DB::table('transaksi')
-                ->where('sales_id', $sales->id)
-                ->where('piutang', '<=', 0) // Hanya transaksi lunas
-                ->get();
+            $txSales = $semuaTxLunas[$sales->id] ?? collect();
+            $omzetLunas = $txSales->sum('total_transaksi');
 
-            $omzetLunas = $transaksiLunas->sum('total_transaksi');
-
-            // 3. Hitung Total Laba (Profit) khusus yang LUNAS
             $modalTotal = 0;
-            foreach ($transaksiLunas as $tx) {
-                $details = DB::table('detail_transaksi')
-                    ->join('barang', 'detail_transaksi.barang_id', '=', 'barang.id')
-                    ->leftJoin('harga', 'barang.id', '=', 'harga.barang_id')
-                    ->where('detail_transaksi.transaksi_id', $tx->id)
-                    ->select('detail_transaksi.jumlah', 'harga.harga_modal')
-                    ->get();
-                
-                foreach($details as $dt) {
-                    $modalTotal += ($dt->jumlah * (float)$dt->harga_modal);
+            foreach ($txSales as $tx) {
+                $details = $allDetails[$tx->id] ?? collect();
+                foreach ($details as $dt) {
+                    $modalItem = ($dt->modal_historis > 0) ? (float)$dt->modal_historis : (float)$dt->modal_sekarang;
+                    $modalTotal += ($dt->jumlah * $modalItem);
                 }
             }
             $labaLunas = $omzetLunas - $modalTotal;
+            $bonusCair = $semuaBonusCair[$sales->id] ?? 0;
 
-            // 4. Hitung Total Bonus yang sudah pernah diberikan/dicairkan ke Sales ini
-            $bonusCair = DB::table('pencairan_bonus')
-                ->where('sales_id', $sales->id)
-                ->sum('total_bonus');
-
-            // Sisipkan hasil kalkulasi ke dalam objek untuk dikirim ke view
             $sales->omzet_lunas = $omzetLunas;
             $sales->laba_lunas = $labaLunas;
             $sales->bonus_cair = $bonusCair;
         }
 
-        // 5. Ambil riwayat tabel pencairan bonus untuk ditampilkan di bawah
+        // 5. Ambil riwayat pencairan bonus toko aktif
         $riwayatBonus = DB::table('pencairan_bonus')
             ->leftJoin('users', 'pencairan_bonus.sales_id', '=', 'users.id')
             ->select('pencairan_bonus.*', 'users.nama as nama_sales')
+            ->where('pencairan_bonus.toko_id', $tokoId)
             ->orderBy('pencairan_bonus.created_at', 'desc')
             ->paginate(10);
 
@@ -66,6 +86,8 @@ class BonusController extends Controller
 
     public function store(Request $request)
     {
+        $tokoId = TenantManager::getTokoId();
+
         $request->validate([
             'sales_id'    => 'required|integer',
             'total_bonus' => 'required|numeric|min:1',
@@ -75,6 +97,7 @@ class BonusController extends Controller
         DB::beginTransaction();
         try {
             DB::table('pencairan_bonus')->insert([
+                'toko_id'     => $tokoId,
                 'sales_id'    => $request->sales_id,
                 'total_bonus' => $request->total_bonus,
                 'keterangan'  => $request->keterangan,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\TenantManager;
 
 class GudangController extends Controller
 {
@@ -12,8 +13,9 @@ class GudangController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
 
-        // Ambil data permintaan gudang beserta relasinya
+        // Ambil data permintaan gudang beserta relasinya khusus toko aktif
         $permintaan = DB::table('permintaan_gudang')
             ->join('transaksi', 'permintaan_gudang.transaksi_id', '=', 'transaksi.id')
             ->leftJoin('users as sales', 'transaksi.sales_id', '=', 'sales.id')
@@ -23,6 +25,7 @@ class GudangController extends Controller
                 'transaksi.created_at as tgl_transaksi', 
                 'sales.nama as nama_sales'
             )
+            ->where('permintaan_gudang.toko_id', $tokoId)
             ->when($search, function($query, $search) {
                 return $query->where('transaksi.no_invoice', 'like', "%{$search}%");
             })
@@ -31,13 +34,17 @@ class GudangController extends Controller
             ->orderBy('permintaan_gudang.id', 'desc')
             ->paginate(10);
 
-        // Ambil rincian detail_transaksi agar gudang tahu barang apa saja yang di-packing
+        // Optimasi: Tarik semua detail transaksi sekaligus (Mencegah N+1 Query)
+        $txIds = $permintaan->pluck('transaksi_id')->toArray();
+        $allDetails = DB::table('detail_transaksi')
+            ->join('barang', 'detail_transaksi.barang_id', '=', 'barang.id')
+            ->select('detail_transaksi.transaksi_id', 'detail_transaksi.jumlah', 'barang.kode_barang', 'barang.nama_barang')
+            ->whereIn('detail_transaksi.transaksi_id', $txIds)
+            ->get()
+            ->groupBy('transaksi_id');
+
         foreach ($permintaan as $p) {
-            $p->detail = DB::table('detail_transaksi')
-                ->join('barang', 'detail_transaksi.barang_id', '=', 'barang.id')
-                ->select('detail_transaksi.jumlah', 'barang.kode_barang', 'barang.nama_barang')
-                ->where('detail_transaksi.transaksi_id', $p->transaksi_id)
-                ->get();
+            $p->detail = $allDetails[$p->transaksi_id] ?? collect();
         }
 
         return view('superadmin.gudang.index', compact('permintaan'));

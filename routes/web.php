@@ -21,8 +21,14 @@ use App\Http\Controllers\BackupController;
 | 1. JALUR AUTENTIKASI (GUEST)
 |--------------------------------------------------------------------------
 */
-Route::get('/', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/', [AuthController::class, 'prosesLogin']);
+// Landing Page Publik
+Route::get('/', function () {
+    return view('welcome');
+})->name('landing');
+
+// Jalur Login dengan Proteksi Rate-Limiting Anti Brute-Force
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'prosesLogin'])->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
@@ -120,6 +126,12 @@ Route::middleware('auth')->group(function () {
             // Backup Database
             Route::get('/backup', [BackupController::class, 'index'])->name('superadmin.backup.index');
             Route::post('/backup/download', [BackupController::class, 'download'])->name('superadmin.backup.download');
+            
+            // Manajemen Multi-Toko (Super Admin Platform)
+            Route::get('/toko', [\App\Http\Controllers\TokoController::class, 'index'])->name('superadmin.toko.index');
+            Route::post('/toko', [\App\Http\Controllers\TokoController::class, 'store'])->name('superadmin.toko.store');
+            Route::put('/toko/{id}', [\App\Http\Controllers\TokoController::class, 'update'])->name('superadmin.toko.update');
+            Route::get('/toko/{id}/switch', [\App\Http\Controllers\TokoController::class, 'switchToko'])->name('superadmin.toko.switch');
         });
     });
 

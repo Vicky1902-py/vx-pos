@@ -10,18 +10,16 @@ use App\Services\TenantManager;
 
 class TokoController extends Controller
 {
-    public function __construct()
+    private function checkAccess(): void
     {
-        $this->middleware(function ($request, $next) {
-            if (!TenantManager::isPlatformAdmin()) {
-                abort(403, 'Akses Ditolak: Halaman Multi-Toko hanya dapat diakses oleh Platform Superadmin.');
-            }
-            return $next($request);
-        });
+        if (!TenantManager::isPlatformAdmin()) {
+            abort(403, 'Akses Ditolak: Halaman Multi-Toko hanya dapat diakses oleh Platform Superadmin.');
+        }
     }
 
     public function index(Request $request)
     {
+        $this->checkAccess();
         $search = $request->get('search');
 
         $toko = DB::table('toko')
@@ -47,6 +45,7 @@ class TokoController extends Controller
 
     public function store(Request $request)
     {
+        $this->checkAccess();
         $request->validate([
             'nama_toko'       => 'required|string|max:255',
             'no_telp'         => 'nullable|string|max:50',
@@ -111,6 +110,8 @@ class TokoController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->checkAccess();
+
         $request->validate([
             'nama_toko' => 'required|string|max:255',
             'no_telp'   => 'nullable|string|max:50',
@@ -139,6 +140,8 @@ class TokoController extends Controller
 
     public function switchToko($id)
     {
+        $this->checkAccess();
+
         if (TenantManager::switchToko((int) $id)) {
             $toko = DB::table('toko')->where('id', $id)->first();
             return redirect()->back()->with('success', "Konteks kerja beralih ke: {$toko->nama_toko}");

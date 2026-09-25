@@ -12,15 +12,13 @@ use App\Services\DatabaseAutoRepair;
 
 class PlatformController extends Controller
 {
-    public function __construct()
+    private function checkAccess()
     {
-        $this->middleware(function ($request, $next) {
-            if (!TenantManager::isPlatformAdmin()) {
-                return redirect()->route('superadmin.dashboard')
-                    ->with('error', 'Akses Ditolak: Halaman Master Platform khusus untuk Superadmin Utama (Platform Owner).');
-            }
-            return $next($request);
-        });
+        if (!TenantManager::isPlatformAdmin()) {
+            return redirect()->route('superadmin.dashboard')
+                ->with('error', 'Akses Ditolak: Halaman Master Platform khusus untuk Superadmin Utama (Platform Owner).');
+        }
+        return null;
     }
 
     /**
@@ -28,6 +26,8 @@ class PlatformController extends Controller
      */
     public function dashboard(Request $request)
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         $search = $request->get('search');
 
         $tokoQuery = DB::table('toko')
@@ -90,6 +90,8 @@ class PlatformController extends Controller
      */
     public function tokoStore(Request $request)
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         $request->validate([
             'nama_toko'       => 'required|string|max:255',
             'no_telp'         => 'nullable|string|max:50',
@@ -159,6 +161,8 @@ class PlatformController extends Controller
      */
     public function tokoUpdate(Request $request, $id)
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         $request->validate([
             'nama_toko'  => 'required|string|max:255',
             'no_telp'    => 'nullable|string|max:50',
@@ -194,6 +198,8 @@ class PlatformController extends Controller
      */
     public function tokoDestroy($id)
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         if ($id == 1) {
             return redirect()->back()->withErrors('Toko Pusat (ID 1) adalah toko sistem utama dan tidak dapat dihapus.');
         }
@@ -217,6 +223,8 @@ class PlatformController extends Controller
      */
     public function impersonateToko($id)
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         if (TenantManager::switchToko((int) $id)) {
             $toko = DB::table('toko')->where('id', $id)->first();
             return redirect()->route('superadmin.dashboard')
@@ -231,6 +239,8 @@ class PlatformController extends Controller
      */
     public function returnMaster()
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         TenantManager::resetToMaster();
         return redirect()->route('platform.dashboard')
             ->with('success', 'Kembali ke Pusat Kendali Superadmin Utama (Platform Master).');
@@ -241,6 +251,8 @@ class PlatformController extends Controller
      */
     public function repairDatabase()
     {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
         DatabaseAutoRepair::repair();
         return redirect()->back()->with('success', 'Pemeriksaan dan perbaikan struktur database multi-tenant berhasil diselesaikan.');
     }

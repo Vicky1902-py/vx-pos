@@ -170,6 +170,16 @@ class DatabaseAutoRepair
         if (Schema::hasColumn('users', 'email') && Schema::hasColumn('users', 'username')) {
             DB::statement("UPDATE users SET username = SUBSTRING_INDEX(email, '@', 1) WHERE (username IS NULL OR username = '') AND email IS NOT NULL");
         }
+
+        // Pastikan kolom email dan name bersifat nullable agar tidak memblokir insert akun baru
+        try {
+            if (Schema::hasColumn('users', 'email')) {
+                DB::statement("ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NULL");
+            }
+            if (Schema::hasColumn('users', 'name')) {
+                DB::statement("ALTER TABLE users MODIFY COLUMN name VARCHAR(255) NULL");
+            }
+        } catch (\Throwable $e) {}
     }
 
     /**
@@ -224,48 +234,48 @@ class DatabaseAutoRepair
 
         // 1. Akun Pemilik Sistem: vicky
         $vicky = DB::table('users')->where('username', 'vicky')->first();
+        $vickyData = [
+            'toko_id'           => 1,
+            'nama'              => 'Vicky Koroh (Platform Owner)',
+            'username'          => 'vicky',
+            'password'          => Hash::make('admin123'),
+            'role'              => 'superadmin',
+            'is_platform_admin' => 1,
+            'status'            => 'aktif',
+            'hak_akses'         => json_encode($allHakAkses),
+            'updated_at'        => now(),
+        ];
+        if (Schema::hasColumn('users', 'name')) $vickyData['name'] = 'Vicky Koroh (Platform Owner)';
+        if (Schema::hasColumn('users', 'email')) $vickyData['email'] = 'vicky@vxpos.id';
+
         if (!$vicky) {
-            DB::table('users')->insert([
-                'toko_id'           => 1,
-                'nama'              => 'Vicky Koroh (Platform Owner)',
-                'username'          => 'vicky',
-                'password'          => Hash::make('admin123'),
-                'role'              => 'superadmin',
-                'is_platform_admin' => 1,
-                'status'            => 'aktif',
-                'hak_akses'         => json_encode($allHakAkses),
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ]);
+            $vickyData['created_at'] = now();
+            DB::table('users')->insert($vickyData);
         } else {
-            DB::table('users')->where('id', $vicky->id)->update([
-                'is_platform_admin' => 1,
-                'role'              => 'superadmin',
-                'status'            => 'aktif',
-            ]);
+            DB::table('users')->where('id', $vicky->id)->update($vickyData);
         }
 
         // 2. Akun Super Admin: admin
         $admin = DB::table('users')->where('username', 'admin')->first();
+        $adminData = [
+            'toko_id'           => 1,
+            'nama'              => 'Super Admin Utama',
+            'username'          => 'admin',
+            'password'          => Hash::make('admin123'),
+            'role'              => 'superadmin',
+            'is_platform_admin' => 1,
+            'status'            => 'aktif',
+            'hak_akses'         => json_encode($allHakAkses),
+            'updated_at'        => now(),
+        ];
+        if (Schema::hasColumn('users', 'name')) $adminData['name'] = 'Super Admin Utama';
+        if (Schema::hasColumn('users', 'email')) $adminData['email'] = 'admin@vxpos.id';
+
         if (!$admin) {
-            DB::table('users')->insert([
-                'toko_id'           => 1,
-                'nama'              => 'Super Admin Utama',
-                'username'          => 'admin',
-                'password'          => Hash::make('admin123'),
-                'role'              => 'superadmin',
-                'is_platform_admin' => 1,
-                'status'            => 'aktif',
-                'hak_akses'         => json_encode($allHakAkses),
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ]);
+            $adminData['created_at'] = now();
+            DB::table('users')->insert($adminData);
         } else {
-            DB::table('users')->where('id', $admin->id)->update([
-                'is_platform_admin' => 1,
-                'role'              => 'superadmin',
-                'status'            => 'aktif',
-            ]);
+            DB::table('users')->where('id', $admin->id)->update($adminData);
         }
 
         // 3. Upgrade semua user yang memiliki role = 'superadmin' agar langsung mendapatkan hak Platform Admin

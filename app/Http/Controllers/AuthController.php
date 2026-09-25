@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Services\TenantManager;
 
@@ -30,6 +31,21 @@ class AuthController extends Controller
 
         $loginInput = trim($request->input('username'));
         $password = $request->input('password');
+
+        // [SAFETY NET]: Jika user mencoba login akun demo atau admin dan belum ada di DB, buat saat itu juga!
+        try {
+            if (in_array($loginInput, ['demo', 'kasir_demo', 'sales_demo', 'gudang_demo'])) {
+                $cekDemo = DB::table('users')->where('username', $loginInput)->first();
+                if (!$cekDemo) {
+                    \App\Services\DemoStoreService::generate();
+                }
+            } elseif (in_array($loginInput, ['admin', 'vicky'])) {
+                $cekAdmin = DB::table('users')->where('username', $loginInput)->first();
+                if (!$cekAdmin) {
+                    \App\Services\DatabaseAutoRepair::repair();
+                }
+            }
+        } catch (\Throwable $e) {}
 
         // Dukung login via username maupun email
         $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);

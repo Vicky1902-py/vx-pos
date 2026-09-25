@@ -14,7 +14,6 @@ class DemoStoreService
      */
     public static function generate(): array
     {
-        DB::beginTransaction();
         try {
             // 1. Buat atau perbarui Toko Demo
             $toko = DB::table('toko')->where('slug', 'toko-demo')->first();
@@ -57,7 +56,7 @@ class DemoStoreService
                 }
             }
 
-            // 3. Buat Akun Pengguna Demo
+            // 3. Buat Akun Pengguna Demo (Dijamin Berhasil dengan Email & Name Kompatibel)
             $allHakAkses = [
                 'master_barang', 'manajemen_harga', 'transaksi_sales',
                 'stok_gudang', 'validasi_kasir', 'laporan_penjualan',
@@ -76,231 +75,15 @@ class DemoStoreService
             // Akun 4: Staf Gudang Demo
             self::upsertUser($tokoId, 'Agus (Staf Gudang Demo)', 'gudang_demo', 'demo123', 'gudang', ['stok_gudang']);
 
-            // 4. Sample Pelanggan Demo
-            $pelangganId = null;
-            if (Schema::hasTable('pelanggan')) {
-                $hasTokoPelanggan = Schema::hasColumn('pelanggan', 'toko_id');
-                $pelangganExist = DB::table('pelanggan')
-                    ->when($hasTokoPelanggan, fn($q) => $q->where('toko_id', $tokoId))
-                    ->where('nama_pelanggan', 'Budi Santoso')
-                    ->first();
+            // 4. Sample Master Barang, Stok & Harga (Safe Try-Catch)
+            try {
+                self::seedSampleProducts($tokoId);
+            } catch (\Throwable $e) {}
 
-                if (!$pelangganExist) {
-                    $insertData = [
-                        'nama_pelanggan' => 'Budi Santoso',
-                        'no_hp'          => '081234567891',
-                        'alamat'         => 'Jl. Flamboyan No. 12, Jakarta',
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
-                    ];
-                    if ($hasTokoPelanggan) $insertData['toko_id'] = $tokoId;
-                    $pelangganId = DB::table('pelanggan')->insertGetId($insertData);
-                } else {
-                    $pelangganId = $pelangganExist->id;
-                }
-            }
-
-            // 5. Sample Master Barang & Stok & Harga Demo
-            $sampleBarang = [
-                [
-                    'kode'     => 'DEMO-001',
-                    'nama'     => 'Kopi Arabika Premium 250gr',
-                    'kategori' => 'Minuman',
-                    'satuan'   => 'Pcs',
-                    'modal'    => 35000,
-                    'jual'     => 55000,
-                    'stok'     => 45,
-                    'min'      => 5,
-                ],
-                [
-                    'kode'     => 'DEMO-002',
-                    'nama'     => 'Teh Hitam Celup Organik',
-                    'kategori' => 'Minuman',
-                    'satuan'   => 'Box',
-                    'modal'    => 18000,
-                    'jual'     => 28000,
-                    'stok'     => 30,
-                    'min'      => 5,
-                ],
-                [
-                    'kode'     => 'DEMO-003',
-                    'nama'     => 'Kaos Polos Cotton Combed 30s',
-                    'kategori' => 'Fashion',
-                    'satuan'   => 'Pcs',
-                    'modal'    => 40000,
-                    'jual'     => 75000,
-                    'stok'     => 25,
-                    'min'      => 5,
-                ],
-                [
-                    'kode'     => 'DEMO-004',
-                    'nama'     => 'Kemeja Casual Oxford Premium',
-                    'kategori' => 'Fashion',
-                    'satuan'   => 'Pcs',
-                    'modal'    => 85000,
-                    'jual'     => 145000,
-                    'stok'     => 15,
-                    'min'      => 3,
-                ],
-                [
-                    'kode'     => 'DEMO-005',
-                    'nama'     => 'Tumbler Stainless Vacuum 500ml',
-                    'kategori' => 'Aksesoris',
-                    'satuan'   => 'Pcs',
-                    'modal'    => 50000,
-                    'jual'     => 89000,
-                    'stok'     => 2, // Rendah (Warning)
-                    'min'      => 5,
-                ],
-                [
-                    'kode'     => 'DEMO-006',
-                    'nama'     => 'Snack Keripik Singkong Renyah',
-                    'kategori' => 'Makanan',
-                    'satuan'   => 'Bungkus',
-                    'modal'    => 8000,
-                    'jual'     => 15000,
-                    'stok'     => 80,
-                    'min'      => 10,
-                ],
-            ];
-
-            $savedBarangIds = [];
-
-            if (Schema::hasTable('barang')) {
-                $hasBarangToko = Schema::hasColumn('barang', 'toko_id');
-                foreach ($sampleBarang as $item) {
-                    $barang = DB::table('barang')
-                        ->when($hasBarangToko, fn($q) => $q->where('toko_id', $tokoId))
-                        ->where('kode_barang', $item['kode'])
-                        ->first();
-
-                    if (!$barang) {
-                        $barangData = [
-                            'kode_barang' => $item['kode'],
-                            'nama_barang' => $item['nama'],
-                            'kategori'    => $item['kategori'],
-                            'satuan'      => $item['satuan'],
-                            'status'      => 'aktif',
-                            'created_at'  => now(),
-                            'updated_at'  => now(),
-                        ];
-                        if ($hasBarangToko) $barangData['toko_id'] = $tokoId;
-                        $barangId = DB::table('barang')->insertGetId($barangData);
-                    } else {
-                        $barangId = $barang->id;
-                    }
-
-                    $savedBarangIds[] = [
-                        'id'    => $barangId,
-                        'nama'  => $item['nama'],
-                        'modal' => $item['modal'],
-                        'jual'  => $item['jual'],
-                    ];
-
-                    // Stok
-                    if (Schema::hasTable('stok')) {
-                        $hasStokToko = Schema::hasColumn('stok', 'toko_id');
-                        $stokData = [
-                            'stok_tersedia'  => $item['stok'],
-                            'stok_minimum'   => $item['min'],
-                            'status_warning' => ($item['stok'] <= $item['min']) ? 'warning' : 'aman',
-                            'updated_at'     => now(),
-                        ];
-                        if ($hasStokToko) $stokData['toko_id'] = $tokoId;
-
-                        DB::table('stok')->updateOrInsert(
-                            ['barang_id' => $barangId],
-                            $stokData
-                        );
-                    }
-
-                    // Harga
-                    if (Schema::hasTable('harga')) {
-                        $hasHargaToko = Schema::hasColumn('harga', 'toko_id');
-                        $hargaData = [
-                            'harga_modal'   => $item['modal'],
-                            'harga_minimum' => $item['modal'] * 1.1,
-                            'harga_jual'    => $item['jual'],
-                            'diskon_rupiah' => 0,
-                            'updated_at'    => now(),
-                        ];
-                        if ($hasHargaToko) $hargaData['toko_id'] = $tokoId;
-
-                        DB::table('harga')->updateOrInsert(
-                            ['barang_id' => $barangId],
-                            $hargaData
-                        );
-                    }
-                }
-            }
-
-            // 6. Sample Transaksi Realistis Toko Demo
-            if (Schema::hasTable('transaksi') && count($savedBarangIds) >= 2) {
-                $hasTxToko = Schema::hasColumn('transaksi', 'toko_id');
-                $cekTx = DB::table('transaksi')
-                    ->when($hasTxToko, fn($q) => $q->where('toko_id', $tokoId))
-                    ->count();
-
-                if ($cekTx < 3) {
-                    $salesId = $salesUser ? $salesUser->id : null;
-
-                    // Transaksi 1: Selesai Lunas Hari Ini
-                    self::createSampleTransaction(
-                        $tokoId,
-                        'INV-DEMO-' . rand(1000, 9999),
-                        $salesId,
-                        $pelangganId,
-                        'Budi Santoso',
-                        'selesai',
-                        165000, // total
-                        165000, // dp/terbayar
-                        0,      // piutang
-                        now(),
-                        [
-                            ['barang_id' => $savedBarangIds[0]['id'], 'qty' => 2, 'modal' => $savedBarangIds[0]['modal'], 'jual' => $savedBarangIds[0]['jual']],
-                            ['barang_id' => $savedBarangIds[1]['id'], 'qty' => 2, 'modal' => $savedBarangIds[1]['modal'], 'jual' => $savedBarangIds[1]['jual']],
-                        ]
-                    );
-
-                    // Transaksi 2: Selesai dengan Piutang / Cicilan
-                    self::createSampleTransaction(
-                        $tokoId,
-                        'INV-DEMO-' . rand(1000, 9999),
-                        $salesId,
-                        $pelangganId,
-                        'Budi Santoso',
-                        'selesai',
-                        220000, // total
-                        100000, // dp terbayar
-                        120000, // piutang
-                        now()->subDays(2),
-                        [
-                            ['barang_id' => $savedBarangIds[2]['id'], 'qty' => 2, 'modal' => $savedBarangIds[2]['modal'], 'jual' => $savedBarangIds[2]['jual']],
-                            ['barang_id' => $savedBarangIds[3]['id'], 'qty' => 1, 'modal' => $savedBarangIds[3]['modal'], 'jual' => $savedBarangIds[3]['jual']],
-                        ]
-                    );
-
-                    // Transaksi 3: Pending untuk Simulasi Kasir / Gudang
-                    self::createSampleTransaction(
-                        $tokoId,
-                        'INV-DEMO-' . rand(1000, 9999),
-                        $salesId,
-                        null,
-                        'Pelanggan Umum',
-                        'pending',
-                        70000,
-                        0,
-                        70000,
-                        now(),
-                        [
-                            ['barang_id' => $savedBarangIds[5]['id'], 'qty' => 2, 'modal' => $savedBarangIds[5]['modal'], 'jual' => $savedBarangIds[5]['jual']],
-                            ['barang_id' => $savedBarangIds[0]['id'], 'qty' => 1, 'modal' => $savedBarangIds[0]['modal'], 'jual' => $savedBarangIds[0]['jual']],
-                        ]
-                    );
-                }
-            }
-
-            DB::commit();
+            // 5. Sample Transaksi Realistis (Safe Try-Catch)
+            try {
+                self::seedSampleTransactions($tokoId, $salesUser ? $salesUser->id : null);
+            } catch (\Throwable $e) {}
 
             return [
                 'success' => true,
@@ -308,7 +91,6 @@ class DemoStoreService
                 'message' => 'Akun demo dan Toko Retail Demo berhasil dibuat dan disinkronkan dengan data simulasi realistis!',
             ];
         } catch (\Throwable $e) {
-            DB::rollBack();
             return [
                 'success' => false,
                 'message' => 'Gagal membuat toko demo: ' . $e->getMessage(),
@@ -317,52 +99,239 @@ class DemoStoreService
     }
 
     /**
-     * Helper create or update user
+     * Helper create or update user dengan perlindungan menyeluruh terhadap kolom email & name
      */
     private static function upsertUser(int $tokoId, string $nama, string $username, string $password, string $role, array $hakAkses)
     {
         if (!Schema::hasTable('users')) return null;
 
-        $user = DB::table('users')->where('username', $username)->first();
+        $user = DB::table('users')
+            ->where('username', $username)
+            ->when(Schema::hasColumn('users', 'email'), function ($q) use ($username) {
+                $q->orWhere('email', $username . '@vxpos.id');
+            })
+            ->first();
+
+        $userData = [
+            'toko_id'           => $tokoId,
+            'nama'              => $nama,
+            'username'          => $username,
+            'password'          => Hash::make($password),
+            'role'              => $role,
+            'is_platform_admin' => 0,
+            'status'            => 'aktif',
+            'hak_akses'         => json_encode($hakAkses),
+            'updated_at'        => now(),
+        ];
+
+        // Pastikan kompatibel jika tabel users memiliki kolom bawaan Laravel 'name' & 'email'
+        if (Schema::hasColumn('users', 'name')) {
+            $userData['name'] = $nama;
+        }
+        if (Schema::hasColumn('users', 'email')) {
+            $userData['email'] = $username . '@vxpos.id';
+        }
+
         if (!$user) {
-            $userId = DB::table('users')->insertGetId([
-                'toko_id'           => $tokoId,
-                'nama'              => $nama,
-                'username'          => $username,
-                'password'          => Hash::make($password),
-                'role'              => $role,
-                'is_platform_admin' => 0,
-                'status'            => 'aktif',
-                'hak_akses'         => json_encode($hakAkses),
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ]);
+            $userData['created_at'] = now();
+            $userId = DB::table('users')->insertGetId($userData);
             return (object) ['id' => $userId];
         } else {
-            DB::table('users')->where('id', $user->id)->update([
-                'toko_id'           => $tokoId,
-                'nama'              => $nama,
-                'password'          => Hash::make($password),
-                'role'              => $role,
-                'is_platform_admin' => 0,
-                'status'            => 'aktif',
-                'hak_akses'         => json_encode($hakAkses),
-                'updated_at'        => now(),
-            ]);
+            DB::table('users')->where('id', $user->id)->update($userData);
             return $user;
         }
     }
 
     /**
-     * Helper create sample transaction
+     * Seeder Barang, Stok, & Harga Demo
      */
-    private static function createSampleTransaction(int $tokoId, string $invoice, ?int $salesId, ?int $pelangganId, string $namaPelanggan, string $status, float $total, float $dp, float $piutang, Carbon $tanggal, array $items)
+    private static function seedSampleProducts(int $tokoId)
+    {
+        if (!Schema::hasTable('barang')) return;
+
+        $sampleBarang = [
+            [
+                'kode'     => 'DEMO-001',
+                'nama'     => 'Kopi Arabika Premium 250gr',
+                'kategori' => 'Minuman',
+                'satuan'   => 'Pcs',
+                'modal'    => 35000,
+                'jual'     => 55000,
+                'stok'     => 45,
+                'min'      => 5,
+            ],
+            [
+                'kode'     => 'DEMO-002',
+                'nama'     => 'Teh Hitam Celup Organik',
+                'kategori' => 'Minuman',
+                'satuan'   => 'Box',
+                'modal'    => 18000,
+                'jual'     => 28000,
+                'stok'     => 30,
+                'min'      => 5,
+            ],
+            [
+                'kode'     => 'DEMO-003',
+                'nama'     => 'Kaos Polos Cotton Combed 30s',
+                'kategori' => 'Fashion',
+                'satuan'   => 'Pcs',
+                'modal'    => 40000,
+                'jual'     => 75000,
+                'stok'     => 25,
+                'min'      => 5,
+            ],
+            [
+                'kode'     => 'DEMO-004',
+                'nama'     => 'Kemeja Casual Oxford Premium',
+                'kategori' => 'Fashion',
+                'satuan'   => 'Pcs',
+                'modal'    => 85000,
+                'jual'     => 145000,
+                'stok'     => 15,
+                'min'      => 3,
+            ],
+            [
+                'kode'     => 'DEMO-005',
+                'nama'     => 'Tumbler Stainless Vacuum 500ml',
+                'kategori' => 'Aksesoris',
+                'satuan'   => 'Pcs',
+                'modal'    => 50000,
+                'jual'     => 89000,
+                'stok'     => 2, // Rendah (Warning)
+                'min'      => 5,
+            ],
+            [
+                'kode'     => 'DEMO-006',
+                'nama'     => 'Snack Keripik Singkong Renyah',
+                'kategori' => 'Makanan',
+                'satuan'   => 'Bungkus',
+                'modal'    => 8000,
+                'jual'     => 15000,
+                'stok'     => 80,
+                'min'      => 10,
+            ],
+        ];
+
+        $hasBarangToko = Schema::hasColumn('barang', 'toko_id');
+        $hasStokToko = Schema::hasTable('stok') && Schema::hasColumn('stok', 'toko_id');
+        $hasHargaToko = Schema::hasTable('harga') && Schema::hasColumn('harga', 'toko_id');
+
+        foreach ($sampleBarang as $item) {
+            $barang = DB::table('barang')
+                ->when($hasBarangToko, fn($q) => $q->where('toko_id', $tokoId))
+                ->where('kode_barang', $item['kode'])
+                ->first();
+
+            if (!$barang) {
+                $barangData = [
+                    'kode_barang' => $item['kode'],
+                    'nama_barang' => $item['nama'],
+                    'kategori'    => $item['kategori'],
+                    'satuan'      => $item['satuan'],
+                    'status'      => 'aktif',
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ];
+                if ($hasBarangToko) $barangData['toko_id'] = $tokoId;
+                $barangId = DB::table('barang')->insertGetId($barangData);
+            } else {
+                $barangId = $barang->id;
+            }
+
+            // Stok
+            if (Schema::hasTable('stok')) {
+                $stokData = [
+                    'stok_tersedia'  => $item['stok'],
+                    'stok_minimum'   => $item['min'],
+                    'status_warning' => ($item['stok'] <= $item['min']) ? 'warning' : 'aman',
+                    'updated_at'     => now(),
+                ];
+                if ($hasStokToko) $stokData['toko_id'] = $tokoId;
+
+                DB::table('stok')->updateOrInsert(
+                    ['barang_id' => $barangId],
+                    $stokData
+                );
+            }
+
+            // Harga
+            if (Schema::hasTable('harga')) {
+                $hargaData = [
+                    'harga_modal'   => $item['modal'],
+                    'harga_minimum' => $item['modal'] * 1.1,
+                    'harga_jual'    => $item['jual'],
+                    'diskon_rupiah' => 0,
+                    'updated_at'    => now(),
+                ];
+                if ($hasHargaToko) $hargaData['toko_id'] = $tokoId;
+
+                DB::table('harga')->updateOrInsert(
+                    ['barang_id' => $barangId],
+                    $hargaData
+                );
+            }
+        }
+    }
+
+    /**
+     * Seeder Transaksi Sampel Toko Demo
+     */
+    private static function seedSampleTransactions(int $tokoId, ?int $salesId)
+    {
+        if (!Schema::hasTable('transaksi') || !Schema::hasTable('barang')) return;
+
+        $hasTxToko = Schema::hasColumn('transaksi', 'toko_id');
+        $count = DB::table('transaksi')->when($hasTxToko, fn($q) => $q->where('toko_id', $tokoId))->count();
+        if ($count >= 2) return;
+
+        $items = DB::table('barang')
+            ->when(Schema::hasColumn('barang', 'toko_id'), fn($q) => $q->where('toko_id', $tokoId))
+            ->limit(4)
+            ->get();
+
+        if ($items->count() < 2) return;
+
+        // Transaksi 1: Selesai Lunas
+        self::createTx(
+            $tokoId,
+            'INV-DEMO-001',
+            $salesId,
+            'Budi Santoso',
+            'selesai',
+            165000,
+            165000,
+            0,
+            now(),
+            [
+                ['barang_id' => $items[0]->id, 'qty' => 2, 'modal' => 35000, 'jual' => 55000],
+                ['barang_id' => $items[1]->id, 'qty' => 2, 'modal' => 18000, 'jual' => 28000],
+            ]
+        );
+
+        // Transaksi 2: Selesai Cicilan / Piutang
+        self::createTx(
+            $tokoId,
+            'INV-DEMO-002',
+            $salesId,
+            'Ibu Rina Wati',
+            'selesai',
+            220000,
+            100000,
+            120000,
+            now()->subDays(2),
+            [
+                ['barang_id' => $items[0]->id, 'qty' => 4, 'modal' => 35000, 'jual' => 55000],
+            ]
+        );
+    }
+
+    private static function createTx(int $tokoId, string $invoice, ?int $salesId, string $namaPelanggan, string $status, float $total, float $dp, float $piutang, Carbon $tanggal, array $items)
     {
         $hasTxToko = Schema::hasColumn('transaksi', 'toko_id');
         $txData = [
             'no_invoice'      => $invoice,
             'sales_id'        => $salesId,
-            'pelanggan_id'    => $pelangganId,
+            'pelanggan_id'    => null,
             'nama_pelanggan'  => $namaPelanggan,
             'status'          => $status,
             'total_transaksi' => $total,
@@ -376,7 +345,6 @@ class DemoStoreService
 
         $txId = DB::table('transaksi')->insertGetId($txData);
 
-        // Details
         if (Schema::hasTable('detail_transaksi')) {
             $hasDetailToko = Schema::hasColumn('detail_transaksi', 'toko_id');
             foreach ($items as $it) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\TenantManager;
 
 class ValidasiKasirController extends Controller
 {
@@ -11,10 +12,12 @@ class ValidasiKasirController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
 
         $transaksi = DB::table('transaksi')
             ->leftJoin('users as sales', 'transaksi.sales_id', '=', 'sales.id')
             ->select('transaksi.*', 'sales.nama as nama_sales')
+            ->where('transaksi.toko_id', $tokoId)
             ->when($search, function($query, $search) {
                 return $query->where('transaksi.no_invoice', 'like', "%{$search}%");
             })
@@ -30,14 +33,16 @@ class ValidasiKasirController extends Controller
     // Aksi Kasir: Menyetujui transaksi
     public function approve($id)
     {
+        $tokoId = TenantManager::getTokoId();
+
         DB::beginTransaction();
         try {
-            $transaksi = DB::table('transaksi')->where('id', $id)->first();
+            $transaksi = DB::table('transaksi')->where('id', $id)->where('toko_id', $tokoId)->first();
             
             if ($transaksi) {
                 $sisaPelunasan = (float) $transaksi->piutang;
 
-                DB::table('transaksi')->where('id', $id)->update([
+                DB::table('transaksi')->where('id', $id)->where('toko_id', $tokoId)->update([
                     'status'     => 'selesai',
                     'dp'         => $transaksi->total_transaksi,
                     'piutang'    => 0,
@@ -47,7 +52,7 @@ class ValidasiKasirController extends Controller
                 // Rekam pencatatan pelunasan di riwayat cicilan jika ada sisa piutang
                 if ($sisaPelunasan > 0) {
                     DB::table('riwayat_cicilan')->insert([
-                        'toko_id'       => $transaksi->toko_id ?? 1,
+                        'toko_id'       => $tokoId,
                         'transaksi_id'  => $id,
                         'nominal_bayar' => $sisaPelunasan,
                         'keterangan'    => 'Pelunasan Akhir Kasir',
@@ -70,10 +75,13 @@ class ValidasiKasirController extends Controller
     // Halaman Cetak Nota / Invoice
     public function printNota($id)
     {
+        $tokoId = TenantManager::getTokoId();
+
         $transaksi = DB::table('transaksi')
             ->leftJoin('users as sales', 'transaksi.sales_id', '=', 'sales.id')
             ->select('transaksi.*', 'sales.nama as nama_sales')
             ->where('transaksi.id', $id)
+            ->where('transaksi.toko_id', $tokoId)
             ->first();
 
         if (!$transaksi) return abort(404, 'Transaksi tidak ditemukan');
@@ -85,8 +93,9 @@ class ValidasiKasirController extends Controller
             ->where('transaksi_id', $id)
             ->get();
 
-        // Ambil pengaturan toko
-        $pengaturan = DB::table('pengaturan_toko')->first();
+        // Ambil pengaturan toko khusus toko aktif (fallback ke baris pertama jika belum diset)
+        $pengaturan = DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first() 
+            ?? DB::table('pengaturan_toko')->first();
 
         // Fungsi internal untuk mengubah angka menjadi teks (Terbilang)
         $terbilang = function ($angka) use (&$terbilang) {

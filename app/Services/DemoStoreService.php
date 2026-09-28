@@ -15,6 +15,9 @@ class DemoStoreService
     public static function generate(): array
     {
         try {
+            // Pastikan struktur database & kolom baru selalu diperbaiki
+            \App\Services\DatabaseAutoRepair::repair();
+
             // 1. Pastikan tabel toko ada
             if (!Schema::hasTable('toko')) {
                 Schema::create('toko', function (\Illuminate\Database\Schema\Blueprint $table) {

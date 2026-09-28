@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use App\Services\TenantManager;
 
 class HargaController extends Controller
 {
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $tokoId = TenantManager::getTokoId();
         
-        // Mengambil data barang dan digabungkan (join) dengan data harganya
+        // Mengambil data barang toko aktif dan digabungkan (join) dengan data harganya
         $barangHarga = DB::table('barang')
             ->leftJoin('harga', 'barang.id', '=', 'harga.barang_id')
             ->select(
@@ -25,6 +28,7 @@ class HargaController extends Controller
                 'harga.harga_jual',
                 'harga.diskon_rupiah' // [BARU] Tambahan untuk menampilkan data diskon
             )
+            ->where('barang.toko_id', $tokoId)
             ->when($search, function ($query, $search) {
                 return $query->where('barang.kode_barang', 'like', "%{$search}%")
                              ->orWhere('barang.nama_barang', 'like', "%{$search}%");
@@ -37,6 +41,8 @@ class HargaController extends Controller
 
     public function storeOrUpdate(Request $request)
     {
+        $tokoId = TenantManager::getTokoId();
+
         // Validasi input angka dengan Hierarki Harga (Anti-Rugi)
         $request->validate([
             'barang_id'     => 'required|numeric',
@@ -49,6 +55,12 @@ class HargaController extends Controller
             'harga_jual.gte'    => 'Harga Jual tidak boleh lebih kecil dari Harga Minimum.'
         ]);
 
+        // Pastikan barang yang diubah harganya adalah milik toko aktif
+        $barang = DB::table('barang')->where('id', $request->barang_id)->where('toko_id', $tokoId)->first();
+        if (!$barang) {
+            return redirect()->back()->withErrors('Akses Ditolak: Barang tidak ditemukan atau bukan milik toko aktif Anda.');
+        }
+
         $diskon = $request->diskon_rupiah ?? 0;
 
         // [BARU] Logika Sistem Anti-Rugi
@@ -60,19 +72,24 @@ class HargaController extends Controller
         // Cek apakah barang ini sudah pernah diset harganya
         $exists = DB::table('harga')->where('barang_id', $request->barang_id)->first();
 
+        $hasHargaToko = Schema::hasColumn('harga', 'toko_id');
+
         if ($exists) {
             // Jika sudah ada, kita Update
-            DB::table('harga')->where('barang_id', $request->barang_id)->update([
+            $updateData = [
                 'harga_modal'   => $request->harga_modal,
                 'harga_minimum' => $request->harga_minimum,
                 'harga_jual'    => $request->harga_jual,
                 'diskon_rupiah' => $diskon, // [BARU] Simpan ke kolom baru
                 'updated_at'    => now()
-            ]);
+            ];
+            if ($hasHargaToko) $updateData['toko_id'] = $tokoId;
+
+            DB::table('harga')->where('barang_id', $request->barang_id)->update($updateData);
             $pesan = 'Harga dan Diskon berhasil diperbarui!';
         } else {
             // Jika belum ada, kita Insert baru
-            DB::table('harga')->insert([
+            $insertData = [
                 'barang_id'     => $request->barang_id,
                 'harga_modal'   => $request->harga_modal,
                 'harga_minimum' => $request->harga_minimum,
@@ -80,7 +97,10 @@ class HargaController extends Controller
                 'diskon_rupiah' => $diskon, // [BARU] Simpan ke kolom baru
                 'created_at'    => now(),
                 'updated_at'    => now()
-            ]);
+            ];
+            if ($hasHargaToko) $insertData['toko_id'] = $tokoId;
+
+            DB::table('harga')->insert($insertData);
             $pesan = 'Harga dan Diskon baru berhasil ditetapkan!';
         }
 

@@ -144,29 +144,38 @@
                     Login
                 </button>
 
-                <!-- Quick Demo Buttons (1-Klik Coba Demo) -->
+                <!-- Quick Demo & Superadmin Buttons -->
                 <div class="mt-6 pt-5 border-t border-[#434968] space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-[#cfd3ec] font-semibold flex items-center">
-                            <i class="fa-solid fa-flask-vial text-[#28c76f] mr-1.5"></i> Coba Akun Demo:
+                            <i class="fa-solid fa-flask-vial text-[#28c76f] mr-1.5"></i> Masuk Cepat Akun Demo (1-Klik):
                         </span>
-                        <a href="{{ route('login.demo.quick', 'admin') }}" class="text-[11px] font-bold text-amber-400 hover:text-amber-300 underline flex items-center gap-1">
-                            <i class="fa-solid fa-bolt text-[10px]"></i> Masuk Cepat Demo (1-Klik)
-                        </a>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="isiKredensial('demo', 'demo123')" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-left border border-white/10 transition group">
-                            <p class="text-xs font-bold text-white group-hover:text-[#7367f0] flex items-center gap-1">
-                                <i class="fa-solid fa-store text-[10px] text-amber-400"></i> Admin Demo
+                        <a href="{{ route('login.demo.quick', 'admin') }}" class="px-3 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-left border border-amber-500/30 transition group block">
+                            <p class="text-xs font-bold text-amber-300 flex items-center justify-between">
+                                <span><i class="fa-solid fa-store text-[10px] mr-1"></i> Admin Demo</span>
+                                <i class="fa-solid fa-bolt text-[10px] text-amber-400 group-hover:scale-125 transition-transform"></i>
                             </p>
-                            <p class="text-[10px] text-[#7983bb] mt-0.5">demo / demo123</p>
-                        </button>
-                        <button type="button" onclick="isiKredensial('kasir_demo', 'demo123')" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-left border border-white/10 transition group">
-                            <p class="text-xs font-bold text-white group-hover:text-[#28c76f] flex items-center gap-1">
-                                <i class="fa-solid fa-cash-register text-[10px] text-[#28c76f]"></i> Kasir Demo
+                            <p class="text-[10px] text-[#7983bb] mt-0.5">Akses Lengkap Toko Demo</p>
+                        </a>
+                        <a href="{{ route('login.demo.quick', 'kasir') }}" class="px-3 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-left border border-emerald-500/30 transition group block">
+                            <p class="text-xs font-bold text-emerald-300 flex items-center justify-between">
+                                <span><i class="fa-solid fa-cash-register text-[10px] mr-1"></i> Kasir Demo</span>
+                                <i class="fa-solid fa-bolt text-[10px] text-emerald-400 group-hover:scale-125 transition-transform"></i>
                             </p>
-                            <p class="text-[10px] text-[#7983bb] mt-0.5">kasir_demo / demo123</p>
-                        </button>
+                            <p class="text-[10px] text-[#7983bb] mt-0.5">Langsung ke POS Penjualan</p>
+                        </a>
+                    </div>
+
+                    <!-- Bantuan Kredensial Login Manual -->
+                    <div class="p-2.5 bg-white/5 rounded-lg border border-white/5 text-[11px] text-[#8c94c0] space-y-1">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="isiKredensial('admin', 'admin123')">
+                            <span class="flex items-center gap-1 font-medium text-white/90 hover:text-[#7367f0] transition-colors">
+                                <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Super Admin Utama:
+                            </span>
+                            <code class="px-1.5 py-0.5 bg-white/10 rounded text-amber-300 font-mono text-[10px]">admin / admin123</code>
+                        </div>
                     </div>
                 </div>
             </form>

@@ -168,6 +168,12 @@ class AuthController extends Controller
 
             Auth::login($user);
             request()->session()->regenerate();
+
+            if ($role === 'kasir') {
+                return redirect()->route('superadmin.transaksi.create')
+                    ->with('success', "Berhasil masuk sebagai Kasir Demo ({$user->nama})! Silakan melayani transaksi pelanggan.");
+            }
+
             return redirect()->route('superadmin.dashboard')
                 ->with('success', "Berhasil masuk ke Toko Retail Demo (VxPOS) sebagai {$user->nama}!");
         }

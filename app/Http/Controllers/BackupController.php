@@ -5,16 +5,27 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\TenantManager;
 
 class BackupController extends Controller
 {
     public function index()
     {
+        if (!TenantManager::isPlatformAdmin()) {
+            return redirect()->route('superadmin.dashboard')
+                ->with('error', 'Akses Ditolak: Fitur Cadangan Database Global hanya dapat diakses oleh Superadmin Utama (Platform Owner).');
+        }
+
         return view('superadmin.backup.index');
     }
 
     public function download()
     {
+        if (!TenantManager::isPlatformAdmin()) {
+            return redirect()->route('superadmin.dashboard')
+                ->with('error', 'Akses Ditolak: Fitur Cadangan Database Global hanya dapat diakses oleh Superadmin Utama (Platform Owner).');
+        }
+
         // Matikan batas waktu eksekusi jika database sangat besar
         set_time_limit(300); 
 

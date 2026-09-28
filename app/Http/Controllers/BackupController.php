@@ -33,6 +33,11 @@ class BackupController extends Controller
      */
     public function downloadStoreBackup()
     {
+        $user = auth()->user();
+        if ($user && ($user->username === 'demo' || $user->username === 'kasir_demo' || $user->toko_id == 30)) {
+            return redirect()->back()->with('error', 'Akses Ditolak: Fitur Cadangan Data dinonaktifkan pada Akun Demo.');
+        }
+
         set_time_limit(300);
 
         $tokoId = TenantManager::getTokoId();
@@ -190,6 +195,11 @@ class BackupController extends Controller
      */
     public function restoreStoreBackup(Request $request)
     {
+        $user = auth()->user();
+        if ($user && ($user->username === 'demo' || $user->username === 'kasir_demo' || $user->toko_id == 30)) {
+            return redirect()->back()->withErrors('Akses Ditolak: Fitur Pemulihan Data dinonaktifkan pada Akun Demo.');
+        }
+
         $request->validate([
             'backup_file'  => 'required|file|max:25600', // Maks 25MB
             'restore_mode' => 'required|in:replace,merge',

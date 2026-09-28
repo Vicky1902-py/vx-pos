@@ -39,6 +39,11 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $authUser = auth()->user();
+        if ($authUser && ($authUser->username === 'demo' || $authUser->username === 'kasir_demo' || $authUser->toko_id == 30)) {
+            return redirect()->back()->withErrors('Mode Demo: Pembuatan akun karyawan dinonaktifkan.');
+        }
+
         $tokoId = TenantManager::getTokoId();
         $toko = TenantManager::getActiveToko();
         $isPlatform = TenantManager::isPlatformAdmin();
@@ -95,6 +100,11 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
+        $authUser = auth()->user();
+        if ($authUser && ($authUser->username === 'demo' || $authUser->username === 'kasir_demo' || $authUser->toko_id == 30)) {
+            return redirect()->back()->withErrors('Mode Demo: Perubahan akun karyawan dinonaktifkan.');
+        }
+
         $isPlatform = TenantManager::isPlatformAdmin();
         $tokoId = TenantManager::getTokoId();
 
@@ -125,8 +135,8 @@ class UserController extends Controller
             : \App\Http\Middleware\AksesModul::getDefaultPermissionsByRole($request->role);
 
         $updateData = [
-            'nama'       => $request->nama,
-            'username'   => $request->username,
+            'nama'       => strip_tags($request->nama),
+            'username'   => strip_tags($request->username),
             'role'       => $request->role,
             'status'     => $request->status,
             'gaji_pokok' => (float)($request->gaji_pokok ?: 0),
@@ -135,7 +145,7 @@ class UserController extends Controller
         ];
 
         if (Schema::hasColumn('users', 'name')) {
-            $updateData['name'] = $request->nama;
+            $updateData['name'] = strip_tags($request->nama);
         }
 
         // Jika password diisi, berarti Super Admin ingin mereset password
@@ -151,6 +161,11 @@ class UserController extends Controller
 
     public function destroy($id)
     {
+        $authUser = auth()->user();
+        if ($authUser && ($authUser->username === 'demo' || $authUser->username === 'kasir_demo' || $authUser->toko_id == 30)) {
+            return redirect()->back()->withErrors('Mode Demo: Penghapusan akun karyawan dinonaktifkan.');
+        }
+
         $isPlatform = TenantManager::isPlatformAdmin();
         $tokoId = TenantManager::getTokoId();
 

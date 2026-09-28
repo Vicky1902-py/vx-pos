@@ -61,10 +61,10 @@ class BarangController extends Controller
         try {
             $barangId = DB::table('barang')->insertGetId([
                 'toko_id'     => $tokoId,
-                'kode_barang' => $request->kode_barang,
-                'nama_barang' => $request->nama_barang,
-                'kategori'    => $request->kategori,
-                'satuan'      => $request->satuan,
+                'kode_barang' => strip_tags($request->kode_barang),
+                'nama_barang' => strip_tags($request->nama_barang),
+                'kategori'    => strip_tags($request->kategori),
+                'satuan'      => strip_tags($request->satuan),
                 'status'      => $request->status,
                 'created_at'  => now(),
                 'updated_at'  => now(),
@@ -131,10 +131,10 @@ class BarangController extends Controller
         DB::beginTransaction();
         try {
             DB::table('barang')->where('id', $id)->update([
-                'kode_barang' => $request->kode_barang,
-                'nama_barang' => $request->nama_barang,
-                'kategori'    => $request->kategori,
-                'satuan'      => $request->satuan,
+                'kode_barang' => strip_tags($request->kode_barang),
+                'nama_barang' => strip_tags($request->nama_barang),
+                'kategori'    => strip_tags($request->kategori),
+                'satuan'      => strip_tags($request->satuan),
                 'status'      => $request->status,
                 'updated_at'  => now(),
             ]);
@@ -244,11 +244,11 @@ class BarangController extends Controller
                     $c[$cleanKey] = is_string($v) ? trim($v) : $v;
                 }
 
-                // Ekstraksi nilai dengan fallback cerdas untuk segala variasi nama kolom
-                $kode     = $c['kodebarang'] ?? $c['kode'] ?? $c['barcode'] ?? $c['sku'] ?? null;
-                $nama     = $c['namabarang'] ?? $c['nama'] ?? $c['item'] ?? $c['produk'] ?? null;
-                $kategori = !empty($c['kategori']) ? $c['kategori'] : 'Umum';
-                $satuan   = !empty($c['satuan']) ? $c['satuan'] : 'Pcs';
+                // Ekstraksi nilai dengan fallback cerdas untuk segala variasi nama kolom (Sanitasi Anti-XSS)
+                $kode     = strip_tags($c['kodebarang'] ?? $c['kode'] ?? $c['barcode'] ?? $c['sku'] ?? '');
+                $nama     = strip_tags($c['namabarang'] ?? $c['nama'] ?? $c['item'] ?? $c['produk'] ?? '');
+                $kategori = strip_tags(!empty($c['kategori']) ? $c['kategori'] : 'Umum');
+                $satuan   = strip_tags(!empty($c['satuan']) ? $c['satuan'] : 'Pcs');
                 
                 $statusInput = strtolower($c['status'] ?? 'aktif');
                 $status   = in_array($statusInput, ['aktif', 'nonaktif']) ? $statusInput : 'aktif';

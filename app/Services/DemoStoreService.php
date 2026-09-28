@@ -108,6 +108,14 @@ class DemoStoreService
                     if (in_array('updated_at', $ptCols)) $ptData['updated_at'] = now()->toDateTimeString();
                     
                     DB::table('pengaturan_toko')->insert($ptData);
+                } else {
+                    // Reset profil toko demo jika telah diubah atau disusupi
+                    DB::table('pengaturan_toko')->where('toko_id', $tokoId)->update([
+                        'nama_toko'  => 'Toko Retail Demo (VxPOS)',
+                        'alamat'     => 'Kupang NTT Maulafa',
+                        'telepon'    => '0899-DEMO-VXPOS',
+                        'updated_at' => now()->toDateTimeString(),
+                    ]);
                 }
             }
 

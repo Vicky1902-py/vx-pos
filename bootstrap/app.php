@@ -16,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'akses' => \App\Http\Middleware\AksesModul::class,
         ]);
 
-        // Pantau live traffic seluruh aktivitas user (kecuali superadmin)
+        // Pantau live traffic seluruh aktivitas user (kecuali superadmin) & proteksi akun demo
         $middleware->web(append: [
             \App\Http\Middleware\TrackLiveTraffic::class,
+            \App\Http\Middleware\ProtectDemoMode::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -129,6 +129,30 @@ class SuperAdminController extends Controller
                 ->get();
         }
 
+        // 8. Transaksi & Invoice Terbaru untuk Finnova Panel
+        $transaksiTerbaru = collect();
+        $featuredInvoice = null;
+        $featuredItems = collect();
+        if (Schema::hasTable('transaksi')) {
+            $transaksiTerbaru = DB::table('transaksi')
+                ->when($hasTransaksiToko && $tokoId, function ($q) use ($tokoId) {
+                    $q->where('toko_id', $tokoId);
+                })
+                ->orderByDesc('id')
+                ->limit(6)
+                ->get();
+
+            $featuredInvoice = $transaksiTerbaru->first();
+            if ($featuredInvoice && Schema::hasTable('detail_transaksi') && Schema::hasTable('barang')) {
+                $featuredItems = DB::table('detail_transaksi')
+                    ->join('barang', 'detail_transaksi.barang_id', '=', 'barang.id')
+                    ->where('detail_transaksi.transaksi_id', $featuredInvoice->id)
+                    ->select('detail_transaksi.*', 'barang.nama_barang', 'barang.kategori')
+                    ->limit(4)
+                    ->get();
+            }
+        }
+
         $isPlatformAdmin = TenantManager::isPlatformAdmin();
         $isAssistMode = TenantManager::isAssistMode();
         $activeToko = TenantManager::getActiveToko();
@@ -143,6 +167,9 @@ class SuperAdminController extends Controller
             'grafikTanggal', 
             'grafikPendapatan', 
             'produkTerlaris',
+            'transaksiTerbaru',
+            'featuredInvoice',
+            'featuredItems',
             'isPlatformAdmin',
             'isAssistMode',
             'activeToko'

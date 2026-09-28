@@ -12,184 +12,197 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login - {{ $namaToko }}</title>
     
     @if($logoPath)
         <link rel="icon" type="image/png" href="{{ $logoPath }}">
     @else
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
     @endif
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Public Sans', sans-serif; background-color: #28243d; }
-        .bg-panel { background-color: #2f3349; }
-        .text-heading { color: #cfd3ec; }
-        .text-muted { color: #7983bb; }
-        .border-input { border-color: rgba(207, 211, 236, 0.22); }
-        .bg-input { background-color: #28243d; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(21, 24, 40, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        .btn-finnova-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.5);
+        }
+        .btn-finnova-primary:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        }
     </style>
 </head>
-<body class="min-h-screen flex overflow-hidden">
+<body class="min-h-screen bg-[#0b0d17] text-slate-100 flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
 
-    <div class="hidden lg:flex w-2/3 items-center justify-center relative p-10">
-        <div class="absolute top-8 left-10 flex items-center gap-3">
-            @if($logoPath)
-                <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-16 md:h-20 w-auto object-contain bg-white p-2.5 rounded-xl shadow-lg">
-            @else
-                <div class="w-12 h-12 bg-gradient-to-tr from-[#7367f0] to-[#9e95f5] rounded-xl flex items-center justify-center shadow-lg shadow-[#7367f0]/30 text-white font-black text-xl">
-                    VX
-                </div>
-                <span class="text-3xl font-black text-heading tracking-tight">Vx<span class="text-[#7367f0]">POS</span></span>
-            @endif
+    <!-- Ambient Glowing Gradient Orbs (Finnova Style) -->
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none"></div>
+
+    <div class="w-full max-w-md relative z-10">
+        
+        <!-- Back Link -->
+        <div class="mb-5 flex justify-between items-center">
+            <a href="{{ route('landing') }}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/5">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                <span>Kembali ke Beranda</span>
+            </a>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-400/80 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+                Portal Akses
+            </span>
         </div>
 
-        <div class="relative w-full max-w-lg">
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 border border-[#434968] rounded-full opacity-50"></div>
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] border border-[#434968] rounded-full opacity-20"></div>
-
-            <div class="relative z-10 flex flex-col items-center justify-center text-[#7367f0] drop-shadow-[0_0_30px_rgba(115,103,240,0.4)]">
-                <i class="fa-solid fa-gears text-[120px]"></i>
-                <i class="fa-solid fa-wrench text-5xl absolute -bottom-4 -right-4 text-[#00cfe8] drop-shadow-lg"></i>
-            </div>
-
-            <div class="absolute -top-10 -left-10 bg-panel p-5 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.4)] border border-[#434968] z-20 animate-bounce" style="animation-duration: 4s;">
-                <p class="text-heading font-medium text-sm mb-3">Stok Tersedia</p>
-                <div class="flex items-end gap-3">
-                    <h3 class="text-2xl font-bold text-heading">12.5k</h3>
-                    <span class="text-[#28c76f] text-xs font-semibold mb-1"><i class="fa-solid fa-arrow-trend-up"></i> +8.2%</span>
-                </div>
-            </div>
-
-            <div class="absolute -bottom-10 -right-10 bg-panel p-5 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.4)] border border-[#434968] z-20 animate-bounce" style="animation-duration: 5s; animation-delay: 1s;">
-                <p class="text-heading font-medium text-sm mb-3">Distribusi</p>
-                <div class="flex items-end gap-3">
-                    <h3 class="text-2xl font-bold text-heading">842</h3>
-                    <span class="text-[#00cfe8] text-xs font-semibold mb-1"><i class="fa-solid fa-truck-fast"></i> Aktif</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="w-full lg:w-1/3 bg-panel flex items-center justify-center p-8 sm:p-12 shadow-[-10px_0_30px_rgba(0,0,0,0.2)] relative z-30">
-        <div class="w-full max-w-md">
-            <div class="mb-6">
-                <a href="{{ route('landing') }}" class="inline-flex items-center gap-2 text-xs text-[#7983bb] hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/5">
-                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                    <span>Kembali ke Beranda Utama</span>
-                </a>
-            </div>
-
-            <div class="flex lg:hidden items-center gap-3 mb-8">
+        <!-- Main Login Card -->
+        <div class="glass-card rounded-3xl p-6 sm:p-8">
+            
+            <!-- Brand Header -->
+            <div class="flex items-center gap-3 mb-6">
                 @if($logoPath)
-                    <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-14 w-auto object-contain bg-white p-2 rounded-xl shadow-md">
+                    <img src="{{ $logoPath }}" alt="{{ $namaToko }}" class="h-11 w-auto object-contain bg-white/10 p-2 rounded-2xl border border-white/10 shadow-md">
                 @else
-                    <div class="w-10 h-10 bg-gradient-to-tr from-[#7367f0] to-[#9e95f5] rounded-xl flex items-center justify-center shadow-md shadow-[#7367f0]/30 text-white font-black text-lg">
-                        VX
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 font-black text-lg">
+                        <i class="fa-solid fa-bolt"></i>
                     </div>
-                    <span class="text-2xl font-black text-heading tracking-tight">Vx<span class="text-[#7367f0]">POS</span></span>
                 @endif
+                <div>
+                    <h1 class="text-xl font-extrabold text-white tracking-tight leading-tight">
+                        {{ $namaToko }}
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Smart Retail & Enterprise POS</p>
+                </div>
             </div>
 
-            <div class="mb-8">
-                <h2 class="text-2xl font-semibold text-heading mb-2">Selamat Datang di {{ $namaToko }}!</h2>
-                <p class="text-muted text-sm">Sistem Manajemen POS & Multi-Toko Modern. Silakan masuk ke akun Anda.</p>
+            <!-- Title -->
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-white mb-1">Masuk ke Sistem</h2>
+                <p class="text-xs text-slate-400">Silakan masukkan username dan password akun Anda.</p>
             </div>
 
+            <!-- Error Notification -->
             @if(session('error'))
-                <div class="bg-[rgba(234,84,85,0.16)] border border-[#ea5455] text-[#ea5455] p-4 mb-6 rounded-lg flex gap-3 items-start" role="alert">
-                    <i class="fa-solid fa-circle-exclamation mt-1"></i>
+                <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3.5 mb-5 rounded-2xl flex gap-3 items-start text-xs" role="alert">
+                    <i class="fa-solid fa-circle-exclamation mt-0.5 text-sm"></i>
                     <div>
-                        <p class="font-bold text-sm">Gagal Login!</p>
-                        <p class="text-xs mt-0.5">{{ session('error') }}</p>
+                        <p class="font-bold">Gagal Masuk</p>
+                        <p class="text-[11px] text-red-300/90 mt-0.5">{{ session('error') }}</p>
                     </div>
                 </div>
             @endif
 
-            <form action="{{ route('login') }}" method="POST" class="space-y-5">
+            <!-- Login Form -->
+            <form action="{{ route('login') }}" method="POST" class="space-y-4">
                 @csrf
                 
                 <div>
-                    <label class="block text-heading text-[13px] font-medium mb-1.5" for="username">
-                        Username
+                    <label class="block text-slate-300 text-xs font-semibold mb-1.5" for="username">
+                        Username atau Email
                     </label>
-                    <input class="w-full bg-input border border-input rounded-lg py-2.5 px-4 text-heading text-sm transition-all focus:outline-none focus:border-[#7367f0] focus:ring-1 focus:ring-[#7367f0]" 
-                           id="username" name="username" type="text" placeholder="Masukkan username..." required autofocus>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                            <i class="fa-regular fa-user text-xs"></i>
+                        </span>
+                        <input class="w-full bg-[#1b1f33] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white text-xs placeholder:text-slate-500 transition-all focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" 
+                               id="username" name="username" type="text" placeholder="Masukkan username..." required autofocus>
+                    </div>
                 </div>
 
                 <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label class="block text-heading text-[13px] font-medium" for="password">Password</label>
-                    </div>
+                    <label class="block text-slate-300 text-xs font-semibold mb-1.5" for="password">
+                        Password
+                    </label>
                     <div class="relative">
-                        <input class="w-full bg-input border border-input rounded-lg py-2.5 pl-4 pr-10 text-heading text-sm transition-all focus:outline-none focus:border-[#7367f0] focus:ring-1 focus:ring-[#7367f0]" 
-                               id="password" name="password" type="password" placeholder="********" required>
-                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#7983bb] cursor-pointer hover:text-heading">
-                            <i class="fa-regular fa-eye text-sm"></i>
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                            <i class="fa-solid fa-lock text-xs"></i>
+                        </span>
+                        <input class="w-full bg-[#1b1f33] border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-white text-xs placeholder:text-slate-500 transition-all focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" 
+                               id="password" name="password" type="password" placeholder="••••••••" required>
+                        <span id="togglePasswordBtn" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 cursor-pointer hover:text-white transition-colors">
+                            <i id="togglePasswordIcon" class="fa-regular fa-eye text-xs"></i>
                         </span>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between mt-2 mb-6">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 rounded bg-input border-input text-[#7367f0] focus:ring-[#7367f0] focus:ring-offset-panel accent-[#7367f0]">
-                        <span class="text-muted text-[13px]">Ingat saya</span>
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-slate-300">
+                        <input type="checkbox" name="remember" class="w-4 h-4 rounded bg-[#1b1f33] border-white/10 text-indigo-600 focus:ring-indigo-500 accent-indigo-600">
+                        <span>Ingat saya di perangkat ini</span>
                     </label>
                 </div>
 
-                <button class="w-full bg-[#7367f0] hover:bg-[#6355e6] text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 shadow-[0_2px_6px_rgba(115,103,240,0.4)]" type="submit">
-                    Login
+                <button class="w-full btn-finnova-primary text-white font-bold py-3 px-4 rounded-xl text-xs transition duration-200 flex items-center justify-center gap-2 mt-2" type="submit">
+                    <span>Masuk ke Akun</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </button>
-
-                <!-- Quick Demo & Superadmin Buttons -->
-                <div class="mt-6 pt-5 border-t border-[#434968] space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-[#cfd3ec] font-semibold flex items-center">
-                            <i class="fa-solid fa-flask-vial text-[#28c76f] mr-1.5"></i> Masuk Cepat Akun Demo (1-Klik):
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('login.demo.quick', 'admin') }}" class="px-3 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-left border border-amber-500/30 transition group block">
-                            <p class="text-xs font-bold text-amber-300 flex items-center justify-between">
-                                <span><i class="fa-solid fa-store text-[10px] mr-1"></i> Admin Demo</span>
-                                <i class="fa-solid fa-bolt text-[10px] text-amber-400 group-hover:scale-125 transition-transform"></i>
-                            </p>
-                            <p class="text-[10px] text-[#7983bb] mt-0.5">Akses Lengkap Toko Demo</p>
-                        </a>
-                        <a href="{{ route('login.demo.quick', 'kasir') }}" class="px-3 py-2.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-left border border-emerald-500/30 transition group block">
-                            <p class="text-xs font-bold text-emerald-300 flex items-center justify-between">
-                                <span><i class="fa-solid fa-cash-register text-[10px] mr-1"></i> Kasir Demo</span>
-                                <i class="fa-solid fa-bolt text-[10px] text-emerald-400 group-hover:scale-125 transition-transform"></i>
-                            </p>
-                            <p class="text-[10px] text-[#7983bb] mt-0.5">Langsung ke POS Penjualan</p>
-                        </a>
-                    </div>
-
-                    <!-- Bantuan Kredensial Login Manual -->
-                    <div class="p-2.5 bg-white/5 rounded-lg border border-white/5 text-[11px] text-[#8c94c0] space-y-1">
-                        <div class="flex items-center justify-between cursor-pointer" onclick="isiKredensial('admin', 'admin123')">
-                            <span class="flex items-center gap-1 font-medium text-white/90 hover:text-[#7367f0] transition-colors">
-                                <i class="fa-solid fa-crown text-[10px] text-amber-400"></i> Super Admin Utama:
-                            </span>
-                            <code class="px-1.5 py-0.5 bg-white/10 rounded text-amber-300 font-mono text-[10px]">admin / admin123</code>
-                        </div>
-                    </div>
-                </div>
             </form>
 
-            <p class="text-center text-muted text-xs mt-8">
-                &copy; {{ date('Y') }} {{ $namaToko }}. Hak Cipta by. Vicky Koroh.
+            <!-- 1-Click Fast Demo Testing Section -->
+            <div class="mt-6 pt-5 border-t border-white/10 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] text-slate-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt-lightning text-amber-400"></i> Mode Uji Coba Cepat (1-Klik):
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2.5">
+                    <a href="{{ route('login.demo.quick', 'admin') }}" class="p-3 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-left border border-amber-500/20 transition-all group block">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1">
+                                <i class="fa-solid fa-store text-[10px]"></i> Admin Demo
+                            </span>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-amber-400 group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+                        <p class="text-[10px] text-slate-400 line-clamp-1">Kelola Seluruh Toko</p>
+                    </a>
+
+                    <a href="{{ route('login.demo.quick', 'kasir') }}" class="p-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-left border border-emerald-500/20 transition-all group block">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-emerald-300 flex items-center gap-1">
+                                <i class="fa-solid fa-cash-register text-[10px]"></i> Kasir Demo
+                            </span>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-emerald-400 group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+                        <p class="text-[10px] text-slate-400 line-clamp-1">Langsung Layar POS</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer copyright -->
+            <p class="text-center text-slate-500 text-[11px] mt-6 font-medium">
+                &copy; {{ date('Y') }} {{ $namaToko }}. Enterprise Retail & POS Architecture.
             </p>
         </div>
     </div>
 
+    <!-- Password visibility toggle script -->
     <script>
-        function isiKredensial(username, password) {
-            document.getElementById('username').value = username;
-            document.getElementById('password').value = password;
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+
+        if (toggleBtn && passwordInput && toggleIcon) {
+            toggleBtn.addEventListener('click', function () {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            });
         }
     </script>
 </body>

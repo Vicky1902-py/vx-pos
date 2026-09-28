@@ -20,7 +20,7 @@ class UserController extends Controller
             ->leftJoin('toko', 'users.toko_id', '=', 'toko.id')
             ->select('users.*', 'toko.nama_toko')
             ->when(!$isPlatform, function ($q) use ($tokoId) {
-                return $q->where('users.toko_id', $tokoId);
+                return $q->where('users.toko_id', $tokoId)->where('users.role', '!=', 'superadmin');
             })
             ->when($search, function ($query, $search) {
                 return $query->where('users.nama', 'like', "%{$search}%")

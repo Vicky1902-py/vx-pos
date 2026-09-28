@@ -45,6 +45,20 @@
         .hero-glow {
             background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
         }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(0.8deg); }
+        }
+        @keyframes floatReverse {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(12px) rotate(-0.8deg); }
+        }
+        .animate-float-slow {
+            animation: floatSlow 5s ease-in-out infinite;
+        }
+        .animate-float-reverse {
+            animation: floatReverse 6s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="bg-[#fafafa] text-slate-800 font-sans antialiased overflow-x-hidden">
@@ -68,7 +82,7 @@
                 <a href="#fitur" class="hover:text-brand-600 transition-colors">Fitur Utama</a>
                 <a href="#multi-toko" class="hover:text-brand-600 transition-colors">Multi-Toko</a>
                 <a href="#keunggulan" class="hover:text-brand-600 transition-colors">Sistem Anti-Rugi</a>
-                <a href="#pricing" class="hover:text-brand-600 transition-colors">Paket Harga</a>
+                <a href="#konsultasi" class="hover:text-brand-600 transition-colors">Konsultasi Admin</a>
                 <a href="#faq" class="hover:text-brand-600 transition-colors">FAQ</a>
             </nav>
 
@@ -88,6 +102,9 @@
 
     <!-- Hero Section -->
     <section class="relative pt-36 pb-20 md:pt-44 md:pb-32 hero-glow overflow-hidden">
+        <!-- Interactive Motion Graphic Canvas -->
+        <canvas id="motionCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-30"></canvas>
+
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <!-- Badge -->
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100/80 text-brand-700 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
@@ -115,14 +132,37 @@
                     <i class="fa-solid fa-store"></i>
                     <span>Buka Sistem Toko</span>
                 </a>
-                <a href="#pricing" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-tag text-slate-400"></i>
-                    <span>Lihat Paket Langganan</span>
+                <a href="#konsultasi" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-headset text-brand-600"></i>
+                    <span>Konsultasi ke Admin</span>
                 </a>
             </div>
 
-            <!-- Dashboard Preview Mockup -->
+            <!-- Dashboard Preview Mockup with Floating Interactive Cards -->
             <div class="relative max-w-5xl mx-auto mt-6">
+                
+                <!-- Floating Motion Card 1 (Top Left) -->
+                <div class="hidden lg:flex items-center gap-3.5 absolute -top-8 -left-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 animate-float-slow text-left">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-base shadow-inner">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Kasir Real-Time</p>
+                        <p class="text-xs font-bold text-slate-900">Rp 2.450.000 <span class="text-[10px] text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded font-bold ml-1">Lunas</span></p>
+                    </div>
+                </div>
+
+                <!-- Floating Motion Card 2 (Bottom Right) -->
+                <div class="hidden lg:flex items-center gap-3.5 absolute -bottom-6 -right-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 animate-float-reverse text-left">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center font-bold text-base shadow-inner">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Sistem Anti-Rugi Aktif</p>
+                        <p class="text-xs font-bold text-slate-900">Margin HPP Terkunci Aman</p>
+                    </div>
+                </div>
+
                 <div class="rounded-2xl p-2 bg-gradient-to-b from-slate-200 via-slate-100 to-white shadow-2xl shadow-slate-300/60 border border-slate-200">
                     <div class="bg-slate-900 rounded-xl p-4 sm:p-6 text-left text-white shadow-inner">
                         <!-- Window Header -->
@@ -323,88 +363,87 @@
         </div>
     </section>
 
-    <!-- Pricing Section -->
-    <section id="pricing" class="py-20 bg-white border-t border-slate-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider">Pilihan Paket Langganan</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 mb-4">
-                    Paket Investasi yang Sesuai dengan Skala Toko Anda
+    <!-- Section: Konsultasi Admin (Pengganti Paket Harga) -->
+    <section id="konsultasi" class="py-24 bg-gradient-to-b from-white via-slate-50 to-white border-t border-slate-100 relative overflow-hidden">
+        <!-- Background Accent Orbs -->
+        <div class="absolute top-1/2 left-0 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- Header -->
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider bg-brand-50 border border-brand-100 px-3.5 py-1.5 rounded-full inline-block mb-3">
+                    Konsultasi & Implementasi Khusus
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Solusi Terpadu yang Disesuaikan dengan Bisnis Anda
                 </h2>
-                <p class="text-slate-600 text-base sm:text-lg">
-                    Tingkatkan efisiensi dan hentikan kebocoran uang toko Anda hari ini.
+                <p class="text-slate-600 text-base sm:text-lg mt-3 leading-relaxed">
+                    Setiap toko memiliki alur kerja unik. Konsultasikan kebutuhan operasional, jumlah cabang, sistem kasir, dan penyesuaian data Anda langsung dengan tim kami.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Starter Plan -->
-                <div class="rounded-2xl border border-slate-200 p-8 flex flex-col justify-between hover:border-slate-300 transition-all">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">Starter</h3>
-                        <p class="text-slate-500 text-xs mt-1">Cocok untuk 1 toko tunggal yang baru memulai.</p>
-                        <div class="my-6">
-                            <span class="text-4xl font-extrabold text-slate-900">Rp 149rb</span>
-                            <span class="text-slate-500 text-sm">/bulan</span>
+            <!-- Main Consultation Card (Finnova Style) -->
+            <div class="bg-gradient-to-br from-[#121422] to-[#1c1f36] rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-white/10 relative overflow-hidden">
+                <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>Konsultasi & Demo Sistem 100% Gratis</span>
                         </div>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> 1 Toko / Cabang</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Maksimal 3 User (Kasir/Admin)</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> POS Kasir & Cetak Nota</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Manajemen Stok & Gudang</li>
-                            <li class="flex items-center gap-2.5 text-slate-400"><i class="fa-solid fa-xmark text-slate-300 text-xs"></i> Multi Cabang Konsolidasi</li>
-                        </ul>
+                        <h3 class="text-2xl sm:text-3xl font-black text-white leading-tight">
+                            Siap Mengembangkan Jaringan Toko Anda?
+                        </h3>
+                        <p class="text-slate-300 text-sm leading-relaxed">
+                            Dapatkan rekomendasi arsitektur terbaik untuk toko tunggal maupun ratusan cabang toko ritel & grosir Anda. Kami membantu setup awal, import data produk, hingga pelatihan tim kasir dan gudang.
+                        </p>
+                        
+                        <div class="grid grid-cols-2 gap-3 pt-2 text-xs text-slate-300 font-medium">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>Multi-Tenant & Multi-Cabang</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>Anti-Rugi & Margin Proteksi</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>Migrasi Data Cepat & Aman</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>Dukungan Teknis Langsung</span>
+                            </div>
+                        </div>
                     </div>
-                    <a href="{{ route('login') }}" class="mt-8 block text-center py-3 px-4 rounded-xl text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 transition-colors">
-                        Pilih Starter
-                    </a>
-                </div>
 
-                <!-- Pro Plan (Featured) -->
-                <div class="rounded-2xl border-2 border-brand-600 p-8 flex flex-col justify-between relative shadow-xl shadow-brand-500/10 bg-white">
-                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-sm">
-                        Paling Populer
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">Professional</h3>
-                        <p class="text-slate-500 text-xs mt-1">Untuk toko yang ingin berkembang dan memiliki cabang.</p>
-                        <div class="my-6">
-                            <span class="text-4xl font-extrabold text-brand-600">Rp 299rb</span>
-                            <span class="text-slate-500 text-sm">/bulan</span>
-                        </div>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> <strong>Hingga 5 Cabang Toko</strong></li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> <strong>Unlimited User Kasir & Sales</strong></li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Proteksi Margin Anti-Rugi</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Buku Piutang & Kartu Cicilan</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Payroll Gaji & Komisi Sales</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Ekspor Laporan Excel</li>
-                        </ul>
-                    </div>
-                    <a href="{{ route('login') }}" class="mt-8 block text-center py-3 px-4 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-md shadow-brand-600/30 transition-all">
-                        Coba Paket Pro
-                    </a>
-                </div>
+                    <!-- Consultation Action Buttons -->
+                    <div class="lg:col-span-5 flex flex-col gap-3.5 bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-sm">
+                        <p class="text-xs text-slate-300 text-center font-semibold mb-1">
+                            Pilih Saluran Komunikasi Pilihan Anda:
+                        </p>
 
-                <!-- Enterprise Plan -->
-                <div class="rounded-2xl border border-slate-200 p-8 flex flex-col justify-between hover:border-slate-300 transition-all">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">Enterprise</h3>
-                        <p class="text-slate-500 text-xs mt-1">Solusi custom untuk jaringan distributor skala besar.</p>
-                        <div class="my-6">
-                            <span class="text-4xl font-extrabold text-slate-900">Custom</span>
-                            <span class="text-slate-500 text-sm">/tahunan</span>
+                        <!-- WhatsApp Button -->
+                        <a href="https://wa.me/6281234567890?text=Halo%20Admin%20VxPOS,%20saya%20ingin%20konsultasi%20sistem%20POS%20dan%20implementasi%20toko" target="_blank" 
+                           class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span>Konsultasi via WhatsApp</span>
+                        </a>
+
+                        <!-- Email Button -->
+                        <a href="mailto:admin@vxpos.id?subject=Konsultasi%20Implementasi%20Sistem%20VxPOS&body=Halo%20Admin%20VxPOS,%0A%0ASaya%20tertarik%20untuk%20konsultasi%20mengenai%20implementasi%20sistem%20VxPOS%20untuk%20toko%20saya.%0A%0ANama:%0ANama%20Toko:%0AJumlah%20Cabang:%0ANo.%20WhatsApp:" 
+                           class="w-full py-3.5 px-5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/15 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5">
+                            <i class="fa-regular fa-envelope text-lg"></i>
+                            <span>Hubungi via Email</span>
+                        </a>
+
+                        <div class="pt-2 text-center">
+                            <span class="text-[11px] text-slate-400">Respon cepat dalam hitungan jam kerja</span>
                         </div>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Unlimited Cabang Toko</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Dedicated Server / Private Cloud</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Custom Domain (nama.tokoanda.com)</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Bantuan Migrasi Data Suku Cadang</li>
-                            <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-emerald-500 text-xs"></i> Priority Support 24/7</li>
-                        </ul>
                     </div>
-                    <a href="https://wa.me/6281234567890?text=Halo%20saya%20tertarik%20paket%20Enterprise%20VX-POS" target="_blank" class="mt-8 block text-center py-3 px-4 rounded-xl text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 transition-colors">
-                        Hubungi Sales
-                    </a>
                 </div>
             </div>
         </div>
@@ -471,11 +510,94 @@
                 <div class="flex gap-6">
                     <a href="{{ route('login') }}" class="hover:text-white transition-colors">Login Toko</a>
                     <a href="#fitur" class="hover:text-white transition-colors">Fitur</a>
-                    <a href="#pricing" class="hover:text-white transition-colors">Harga</a>
+                    <a href="#konsultasi" class="hover:text-white transition-colors">Konsultasi</a>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- Interactive Motion Graphic Canvas Script -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('motionCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const particleCount = 45;
+
+            function resize() {
+                width = canvas.width = canvas.parentElement.offsetWidth;
+                height = canvas.height = canvas.parentElement.offsetHeight;
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.8;
+                    this.vy = (Math.random() - 0.5) * 0.8;
+                    this.radius = Math.random() * 2.5 + 1.5;
+                    this.color = Math.random() > 0.5 ? 'rgba(99, 102, 241, ' : 'rgba(168, 85, 247, ';
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (this.x < 0) this.x = width;
+                    if (this.x > width) this.x = 0;
+                    if (this.y < 0) this.y = height;
+                    if (this.y > height) this.y = 0;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color + '0.6)';
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function connect() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 130) {
+                            const opacity = (1 - dist / 130) * 0.35;
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
+                            ctx.lineWidth = 1;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                connect();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        })();
+    </script>
 </body>
 </html>

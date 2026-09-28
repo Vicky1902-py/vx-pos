@@ -137,7 +137,9 @@
                                 <option value="sales">Sales</option>
                                 <option value="kasir">Kasir</option>
                                 <option value="gudang">Gudang</option>
+                                @if(\App\Services\TenantManager::isPlatformAdmin())
                                 <option value="superadmin">Super Admin</option>
+                                @endif
                             </select>
                         </div>
                         <div>

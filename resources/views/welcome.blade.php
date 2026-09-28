@@ -69,6 +69,72 @@
         .animate-float-reverse {
             animation: floatReverse 6s ease-in-out infinite;
         }
+
+        /* Modern Shimmer Glow Motion */
+        @keyframes shimmerSweep {
+            0% { transform: translateX(-150%) skewX(-20deg); }
+            100% { transform: translateX(250%) skewX(-20deg); }
+        }
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+            transform: translateX(-150%) skewX(-20deg);
+            animation: shimmerSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .badge-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .badge-shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.25), transparent);
+            animation: shimmerSweep 4.5s ease-in-out infinite;
+        }
+
+        /* Cursor Ambient Glow */
+        .cursor-ambient-glow {
+            position: absolute;
+            width: 550px;
+            height: 550px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.08) 40%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: transform 0.15s ease-out, opacity 0.4s ease;
+            z-index: 1;
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+        .reveal-on-scroll.is-revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 3D Depth Card Hover */
+        .interactive-card {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .interactive-card:hover {
+            transform: translateY(-5px);
+        }
+        .hero-mockup-perspective {
+            perspective: 1000px;
+            transition: transform 0.25s ease-out;
+        }
     </style>
 </head>
 <body class="bg-[#fafafa] text-slate-800 font-sans antialiased overflow-x-hidden">
@@ -119,10 +185,11 @@
     <section class="relative pt-36 pb-20 md:pt-44 md:pb-32 hero-glow overflow-hidden">
         <!-- Interactive Motion Graphic Canvas -->
         <canvas id="motionCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-30"></canvas>
+        <div id="cursorGlow" class="cursor-ambient-glow hidden md:block opacity-0"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <!-- Badge -->
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100/80 text-brand-700 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
+            <div class="badge-shimmer inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100/80 text-brand-700 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
                 <span class="flex h-2 w-2 rounded-full bg-brand-600 animate-ping"></span>
                 <span>{{ $cms->hero_badge ?? 'Platform Kasir & ERP Terpadu untuk Banyak Toko' }}</span>
             </div>
@@ -139,7 +206,7 @@
 
             <!-- CTA Buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                <a href="{{ $cms->cta_btn_primary_link ?: route('login.demo.quick', 'admin') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-xl shadow-amber-400/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
+                <a href="{{ $cms->cta_btn_primary_link ?: route('login.demo.quick', 'admin') }}" class="btn-shimmer w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-xl shadow-amber-400/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
                     <i class="fa-solid fa-flask-vial"></i>
                     <span>{{ $cms->cta_btn_primary_text ?: 'Coba Demo 1-Klik' }}</span>
                 </a>
@@ -154,7 +221,7 @@
             </div>
 
             <!-- Dashboard Preview Mockup with Floating Interactive Cards -->
-            <div class="relative max-w-5xl mx-auto mt-6">
+            <div class="relative max-w-5xl mx-auto mt-6 hero-mockup-perspective" id="heroMockupWrapper">
                 
                 <!-- Floating Motion Card 1 (Top Left) -->
                 <div class="hidden lg:flex items-center gap-3.5 absolute -top-8 -left-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 z-20 animate-float-slow text-left">
@@ -189,8 +256,9 @@
                                 <span class="ml-3 text-xs font-mono text-slate-400 hidden sm:inline">https://app.vxpos.id/superadmin/dashboard</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-xs bg-slate-800 px-3 py-1 rounded-lg text-emerald-400 font-medium flex items-center gap-1.5">
-                                    <i class="fa-solid fa-circle text-[7px] text-emerald-400"></i> Multi-Tenant Ready
+                                <span id="mockupLiveToast" class="text-xs bg-slate-800/90 px-3 py-1 rounded-lg text-emerald-400 font-medium flex items-center gap-1.5 border border-slate-700/60 transition-all duration-500">
+                                    <i class="fa-solid fa-circle text-[7px] text-emerald-400 animate-pulse"></i>
+                                    <span id="liveToastText">Multi-Tenant Ready</span>
                                 </span>
                             </div>
                         </div>
@@ -248,16 +316,16 @@
 
             <!-- Social Proof Stats Showcase from CMS -->
             <div class="max-w-4xl mx-auto mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center">
-                    <p class="text-2xl sm:text-3xl font-black text-brand-600">{{ $cms->stat_1_val ?? '10.000+' }}</p>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center interactive-card reveal-on-scroll">
+                    <p class="text-2xl sm:text-3xl font-black text-brand-600 count-up" data-target="{{ preg_replace('/[^0-9]/', '', $cms->stat_1_val ?? '10000') }}" data-suffix="{{ preg_replace('/[0-9.]/', '', $cms->stat_1_val ?? '+') }}">{{ $cms->stat_1_val ?? '10.000+' }}</p>
                     <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">{{ $cms->stat_1_label ?? 'Transaksi Diproses' }}</p>
                 </div>
-                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center">
-                    <p class="text-2xl sm:text-3xl font-black text-emerald-600">{{ $cms->stat_2_val ?? '99.9%' }}</p>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center interactive-card reveal-on-scroll">
+                    <p class="text-2xl sm:text-3xl font-black text-emerald-600 count-up" data-target="{{ preg_replace('/[^0-9.]/', '', $cms->stat_2_val ?? '99.9') }}" data-suffix="{{ preg_replace('/[0-9.]/', '', $cms->stat_2_val ?? '%') }}">{{ $cms->stat_2_val ?? '99.9%' }}</p>
                     <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">{{ $cms->stat_2_label ?? 'Akurasi Stok Gudang' }}</p>
                 </div>
-                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center">
-                    <p class="text-2xl sm:text-3xl font-black text-indigo-600">{{ $cms->stat_3_val ?? '0%' }}</p>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center interactive-card reveal-on-scroll">
+                    <p class="text-2xl sm:text-3xl font-black text-indigo-600 count-up" data-target="{{ preg_replace('/[^0-9]/', '', $cms->stat_3_val ?? '0') }}" data-suffix="{{ preg_replace('/[0-9.]/', '', $cms->stat_3_val ?? '%') }}">{{ $cms->stat_3_val ?? '0%' }}</p>
                     <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">{{ $cms->stat_3_label ?? 'Kebocoran Diskon' }}</p>
                 </div>
             </div>
@@ -267,7 +335,7 @@
     <!-- Section: Kenapa Multi-Toko? -->
     <section id="multi-toko" class="py-20 bg-white border-t border-slate-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
                 <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider">Arsitektur Multi-Tenant</span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 mb-4">
                     Satu Akun Sistem, Bebas Buka Banyak Toko & Mitra
@@ -278,7 +346,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all">
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all interactive-card reveal-on-scroll">
                     <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center text-xl mb-6">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
@@ -288,7 +356,7 @@
                     </p>
                 </div>
 
-                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all">
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all interactive-card reveal-on-scroll">
                     <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-xl mb-6">
                         <i class="fa-solid fa-users-gear"></i>
                     </div>
@@ -298,7 +366,7 @@
                     </p>
                 </div>
 
-                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all">
+                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all interactive-card reveal-on-scroll">
                     <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-xl mb-6">
                         <i class="fa-solid fa-chart-pie"></i>
                     </div>
@@ -314,7 +382,7 @@
     <!-- Section: Fitur Unggulan -->
     <section id="fitur" class="py-20 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
                 <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider">Fitur Operasional Lengkap</span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 mb-4">
                     Dirancang Khusus untuk Bisnis Suku Cadang & Retail
@@ -326,7 +394,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 <!-- Feature 1 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
                     <div class="w-10 h-10 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center text-lg mb-4">
                         <i class="fa-solid fa-cash-register"></i>
                     </div>
@@ -337,7 +405,7 @@
                 </div>
 
                 <!-- Feature 2 -->
-                <div id="keunggulan" class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div id="keunggulan" class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
                     <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg mb-4">
                         <i class="fa-solid fa-lock"></i>
                     </div>
@@ -348,7 +416,7 @@
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
                     <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg mb-4">
                         <i class="fa-solid fa-boxes-stacked"></i>
                     </div>
@@ -359,7 +427,7 @@
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
                     <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-lg mb-4">
                         <i class="fa-solid fa-book-bookmark"></i>
                     </div>
@@ -370,7 +438,7 @@
                 </div>
 
                 <!-- Feature 5 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
                     <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg mb-4">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                     </div>
@@ -381,7 +449,7 @@
                 </div>
 
                 <!-- Feature 6 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
                     <div class="w-10 h-10 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center text-lg mb-4">
                         <i class="fa-solid fa-cloud-arrow-down"></i>
                     </div>
@@ -397,7 +465,7 @@
     <!-- Section: Pilihan Paket Langganan SaaS -->
     <section id="pricing" class="py-20 bg-slate-50 border-t border-slate-200/60">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
                 <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider bg-brand-50 border border-brand-100 px-3.5 py-1.5 rounded-full inline-block mb-3">
                     Transparan & Tanpa Biaya Tersembunyi
                 </span>
@@ -411,7 +479,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 <!-- Starter -->
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between interactive-card reveal-on-scroll">
                     <div>
                         <div class="flex items-center justify-between mb-4">
                             <span class="text-xs font-bold uppercase px-3 py-1 bg-slate-100 text-slate-700 rounded-full">Starter</span>
@@ -435,7 +503,7 @@
                 </div>
 
                 <!-- Pro (Featured) -->
-                <div class="bg-gradient-to-b from-indigo-900 to-slate-900 text-white rounded-3xl p-8 border-2 border-brand-500 shadow-2xl relative flex flex-col justify-between transform md:-translate-y-2">
+                <div class="bg-gradient-to-b from-indigo-900 to-slate-900 text-white rounded-3xl p-8 border-2 border-brand-500 shadow-2xl relative flex flex-col justify-between transform md:-translate-y-2 interactive-card reveal-on-scroll">
                     <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[10px] uppercase px-3 py-1 rounded-full shadow-md tracking-wider">
                         PALING POPULER
                     </div>
@@ -464,7 +532,7 @@
                 </div>
 
                 <!-- Enterprise -->
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between interactive-card reveal-on-scroll">
                     <div>
                         <div class="flex items-center justify-between mb-4">
                             <span class="text-xs font-bold uppercase px-3 py-1 bg-purple-50 text-purple-700 rounded-full">Enterprise</span>
@@ -499,7 +567,7 @@
 
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <!-- Header -->
-            <div class="text-center max-w-3xl mx-auto mb-12">
+            <div class="text-center max-w-3xl mx-auto mb-12 reveal-on-scroll">
                 <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider bg-brand-50 border border-brand-100 px-3.5 py-1.5 rounded-full inline-block mb-3">
                     Konsultasi & Implementasi Khusus
                 </span>
@@ -512,7 +580,7 @@
             </div>
 
             <!-- Main Consultation Card (Finnova Style) -->
-            <div class="bg-gradient-to-br from-[#121422] to-[#1c1f36] rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-white/10 relative overflow-hidden">
+            <div class="bg-gradient-to-br from-[#121422] to-[#1c1f36] rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-white/10 relative overflow-hidden reveal-on-scroll">
                 <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
@@ -580,13 +648,13 @@
     <!-- FAQ Section -->
     <section id="faq" class="py-20 bg-slate-50 border-t border-slate-100">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12 reveal-on-scroll">
                 <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider">Tanya Jawab</span>
                 <h2 class="text-3xl font-extrabold text-slate-900 mt-2">Pertanyaan yang Sering Diajukan</h2>
             </div>
 
             <div class="space-y-4">
-                <div class="p-6 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <div class="p-6 bg-white rounded-xl border border-slate-100 shadow-sm interactive-card reveal-on-scroll">
                     <h4 class="text-base font-bold text-slate-900 flex items-center justify-between">
                         <span>Apakah data antar toko saya benar-benar terpisah?</span>
                         <i class="fa-solid fa-angle-down text-slate-400 text-sm"></i>
@@ -596,7 +664,7 @@
                     </p>
                 </div>
 
-                <div class="p-6 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <div class="p-6 bg-white rounded-xl border border-slate-100 shadow-sm interactive-card reveal-on-scroll">
                     <h4 class="text-base font-bold text-slate-900 flex items-center justify-between">
                         <span>Apakah aplikasi ini bisa diakses dari HP atau tablet kasir?</span>
                         <i class="fa-solid fa-angle-down text-slate-400 text-sm"></i>
@@ -606,7 +674,7 @@
                     </p>
                 </div>
 
-                <div class="p-6 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <div class="p-6 bg-white rounded-xl border border-slate-100 shadow-sm interactive-card reveal-on-scroll">
                     <h4 class="text-base font-bold text-slate-900 flex items-center justify-between">
                         <span>Bagaimana sistem mencegah kerugian akibat diskon berlebihan?</span>
                         <i class="fa-solid fa-angle-down text-slate-400 text-sm"></i>
@@ -740,6 +808,152 @@
             }
 
             animate();
+        })();
+
+        // Interactive Enhancements & Motions
+        (function() {
+            // 1. Ambient Glow Tracker & Hero Mockup Tilt
+            const heroSection = document.querySelector('section.hero-glow');
+            const cursorGlow = document.getElementById('cursorGlow');
+            const heroMockup = document.getElementById('heroMockupWrapper');
+
+            if (heroSection && cursorGlow) {
+                let mouseX = 0, mouseY = 0;
+
+                heroSection.addEventListener('mouseenter', () => {
+                    cursorGlow.style.opacity = '1';
+                });
+
+                heroSection.addEventListener('mouseleave', () => {
+                    cursorGlow.style.opacity = '0';
+                    if (heroMockup) {
+                        heroMockup.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+                    }
+                });
+
+                heroSection.addEventListener('mousemove', (e) => {
+                    const rect = heroSection.getBoundingClientRect();
+                    mouseX = e.clientX - rect.left;
+                    mouseY = e.clientY - rect.top;
+
+                    cursorGlow.style.left = mouseX + 'px';
+                    cursorGlow.style.top = mouseY + 'px';
+
+                    // 3D Parallax Tilt for Hero Mockup (subtle, max +-4 deg)
+                    if (heroMockup && window.innerWidth >= 768) {
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+                        const deltaX = (mouseX - centerX) / centerX;
+                        const deltaY = (mouseY - centerY) / centerY;
+                        const tiltX = -deltaY * 3.5;
+                        const tiltY = deltaX * 3.5;
+                        heroMockup.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg)`;
+                    }
+                });
+            }
+
+            // 2. Scroll Reveal with IntersectionObserver
+            const revealElements = document.querySelectorAll('.reveal-on-scroll');
+            if ('IntersectionObserver' in window && revealElements.length > 0) {
+                const revealObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-revealed');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -30px 0px'
+                });
+
+                revealElements.forEach(el => revealObserver.observe(el));
+            } else {
+                revealElements.forEach(el => el.classList.add('is-revealed'));
+            }
+
+            // 3. Animated Number Count-Up
+            const countElements = document.querySelectorAll('.count-up');
+            if (countElements.length > 0) {
+                function animateCount(el) {
+                    const rawTarget = el.getAttribute('data-target');
+                    if (!rawTarget) return;
+
+                    const target = parseFloat(rawTarget);
+                    const suffix = el.getAttribute('data-suffix') || '';
+                    const isDecimal = rawTarget.includes('.');
+                    const duration = 1600; // ms
+                    const startTime = performance.now();
+
+                    function updateNumber(now) {
+                        const elapsed = now - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        // Ease out quad formula
+                        const easeProgress = 1 - (1 - progress) * (1 - progress);
+                        const currentVal = easeProgress * target;
+
+                        if (isDecimal) {
+                            el.textContent = currentVal.toFixed(1) + suffix;
+                        } else {
+                            const intVal = Math.floor(currentVal);
+                            el.textContent = intVal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + suffix;
+                        }
+
+                        if (progress < 1) {
+                            requestAnimationFrame(updateNumber);
+                        } else {
+                            if (isDecimal) {
+                                el.textContent = target.toFixed(1) + suffix;
+                            } else {
+                                el.textContent = Math.floor(target).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + suffix;
+                            }
+                        }
+                    }
+
+                    requestAnimationFrame(updateNumber);
+                }
+
+                if ('IntersectionObserver' in window) {
+                    const counterObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                animateCount(entry.target);
+                                counterObserver.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.2 });
+
+                    countElements.forEach(el => counterObserver.observe(el));
+                } else {
+                    countElements.forEach(el => animateCount(el));
+                }
+            }
+
+            // 4. Cycling Live Activity Ticker in Mockup
+            const liveToast = document.getElementById('mockupLiveToast');
+            const liveToastText = document.getElementById('liveToastText');
+            if (liveToast && liveToastText) {
+                const activities = [
+                    'Multi-Tenant Ready',
+                    'Kasir Toko 1: Transaksi Rp 350.000 Lunas',
+                    'Gudang Sentosa: Verifikasi 14 item fisik',
+                    'Anti-Rugi: Proteksi margin HPP aktif (100% aman)',
+                    'Multi-Store: 5 Cabang tersinkronisasi real-time'
+                ];
+                let activityIndex = 0;
+
+                setInterval(() => {
+                    activityIndex = (activityIndex + 1) % activities.length;
+                    liveToast.style.opacity = '0';
+                    liveToast.style.transform = 'translateY(-4px)';
+                    
+                    setTimeout(() => {
+                        liveToastText.textContent = activities[activityIndex];
+                        liveToast.style.opacity = '1';
+                        liveToast.style.transform = 'translateY(0)';
+                    }, 400);
+                }, 3800);
+            }
         })();
     </script>
 </body>

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Services\TenantManager;
 use App\Services\DatabaseAutoRepair;
+use App\Services\LandingPageService;
 
 class PlatformController extends Controller
 {
@@ -27,6 +28,9 @@ class PlatformController extends Controller
     public function dashboard(Request $request)
     {
         if ($redirect = $this->checkAccess()) return $redirect;
+
+        // Pastikan seluruh tabel dan kolom sistem siap tanpa kendala
+        DatabaseAutoRepair::repair();
 
         $search = $request->get('search');
 
@@ -72,6 +76,41 @@ class PlatformController extends Controller
 
         $activeTokoId = TenantManager::getTokoId();
 
+        // Data Live Traffic (Pengguna Online & Log Aktivitas)
+        $tenMinutesAgo = now()->subMinutes(10);
+        $onlineUsers = collect();
+        $totalOnlineNow = 0;
+        $recentTrafficLogs = collect();
+
+        if (Schema::hasTable('live_traffic')) {
+            $onlineUsers = DB::table('live_traffic')
+                ->leftJoin('toko', 'live_traffic.toko_id', '=', 'toko.id')
+                ->select(
+                    'live_traffic.*',
+                    'toko.nama_toko'
+                )
+                ->where('live_traffic.last_active_at', '>=', $tenMinutesAgo)
+                ->orderBy('live_traffic.last_active_at', 'desc')
+                ->get();
+
+            $totalOnlineNow = $onlineUsers->count();
+        }
+
+        if (Schema::hasTable('live_traffic_logs')) {
+            $recentTrafficLogs = DB::table('live_traffic_logs')
+                ->leftJoin('toko', 'live_traffic_logs.toko_id', '=', 'toko.id')
+                ->select(
+                    'live_traffic_logs.*',
+                    'toko.nama_toko'
+                )
+                ->orderBy('live_traffic_logs.id', 'desc')
+                ->limit(35)
+                ->get();
+        }
+
+        // Pengaturan CMS Landing Page
+        $landingSettings = LandingPageService::get();
+
         return view('platform.dashboard', compact(
             'daftarToko',
             'totalSemuaToko',
@@ -81,7 +120,11 @@ class PlatformController extends Controller
             'estimasiSaaSMrr',
             'omzetGlobalTransaksi',
             'totalTransaksiGlobal',
-            'activeTokoId'
+            'activeTokoId',
+            'onlineUsers',
+            'totalOnlineNow',
+            'recentTrafficLogs',
+            'landingSettings'
         ));
     }
 
@@ -289,5 +332,208 @@ class PlatformController extends Controller
         }
 
         return redirect()->back()->withErrors($result['message']);
+    }
+
+    /**
+     * Endpoint API JSON Live Traffic Feed untuk Polling Real-time
+     */
+    public function liveTrafficData()
+    {
+        if ($redirect = $this->checkAccess()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $tenMinutesAgo = now()->subMinutes(10);
+        $onlineUsers = collect();
+        $recentLogs = collect();
+
+        if (Schema::hasTable('live_traffic')) {
+            $onlineUsers = DB::table('live_traffic')
+                ->leftJoin('toko', 'live_traffic.toko_id', '=', 'toko.id')
+                ->select(
+                    'live_traffic.*',
+                    'toko.nama_toko'
+                )
+                ->where('live_traffic.last_active_at', '>=', $tenMinutesAgo)
+                ->orderBy('live_traffic.last_active_at', 'desc')
+                ->get()
+                ->map(function ($u) {
+                    $u->time_ago = \Carbon\Carbon::parse($u->last_active_at)->diffForHumans();
+                    return $u;
+                });
+        }
+
+        if (Schema::hasTable('live_traffic_logs')) {
+            $recentLogs = DB::table('live_traffic_logs')
+                ->leftJoin('toko', 'live_traffic_logs.toko_id', '=', 'toko.id')
+                ->select(
+                    'live_traffic_logs.*',
+                    'toko.nama_toko'
+                )
+                ->orderBy('live_traffic_logs.id', 'desc')
+                ->limit(35)
+                ->get()
+                ->map(function ($l) {
+                    $l->time_formatted = \Carbon\Carbon::parse($l->created_at)->format('H:i:s');
+                    return $l;
+                });
+        }
+
+        return response()->json([
+            'total_online' => $onlineUsers->count(),
+            'online_users' => $onlineUsers,
+            'recent_logs'  => $recentLogs,
+            'server_time'  => now()->format('H:i:s'),
+        ]);
+    }
+
+    /**
+     * Putuskan Sesi Pengguna Secara Paksa (Kick Out)
+     */
+    public function kickUserSession($id)
+    {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
+        try {
+            $targetUser = DB::table('users')->where('id', $id)->first();
+
+            if (Schema::hasTable('live_traffic')) {
+                DB::table('live_traffic')->where('user_id', $id)->delete();
+            }
+
+            // Catat pemutusan sesi ke traffic log
+            if (Schema::hasTable('live_traffic_logs') && $targetUser) {
+                DB::table('live_traffic_logs')->insert([
+                    'user_id'      => $id,
+                    'toko_id'      => $targetUser->toko_id ?? 1,
+                    'username'     => $targetUser->username ?? 'user',
+                    'nama'         => $targetUser->nama ?? ($targetUser->name ?? 'User'),
+                    'role'         => $targetUser->role ?? 'user',
+                    'url'          => '/logout-forced',
+                    'feature_name' => '⚠️ Sesi Dihentikan Paksa oleh Superadmin Master',
+                    'method'       => 'KICK',
+                    'ip_address'   => request()->ip(),
+                    'created_at'   => now(),
+                ]);
+            }
+
+            // Reset remember_token agar otentikasi login terbongkar
+            if (Schema::hasTable('users')) {
+                DB::table('users')->where('id', $id)->update([
+                    'remember_token' => Str::random(60),
+                ]);
+            }
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => true, 'message' => "Sesi pengguna {$targetUser->nama} berhasil diputus."]);
+            }
+
+            return redirect()->back()->with('success', "Sesi pengguna berhasil diputus secara paksa.");
+        } catch (\Throwable $e) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
+            return redirect()->back()->withErrors('Gagal memutus sesi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Simpan Perubahan Pengaturan Landing Page CMS
+     */
+    public function updateLandingSettings(Request $request)
+    {
+        if ($redirect = $this->checkAccess()) return $redirect;
+
+        $request->validate([
+            'brand_name'             => 'required|string|max:100',
+            'tagline'                => 'nullable|string|max:255',
+            'hero_badge'             => 'nullable|string|max:255',
+            'hero_title'             => 'required|string|max:500',
+            'hero_subtitle'          => 'nullable|string|max:1000',
+            'cta_btn_primary_text'   => 'nullable|string|max:100',
+            'cta_btn_primary_link'   => 'nullable|string|max:255',
+            'cta_btn_secondary_text' => 'nullable|string|max:100',
+            'cta_btn_secondary_link' => 'nullable|string|max:255',
+            'wa_number'              => 'nullable|string|max:50',
+            'wa_message'             => 'nullable|string|max:500',
+            'stat_1_val'             => 'nullable|string|max:50',
+            'stat_1_label'           => 'nullable|string|max:100',
+            'stat_2_val'             => 'nullable|string|max:50',
+            'stat_2_label'           => 'nullable|string|max:100',
+            'stat_3_val'             => 'nullable|string|max:50',
+            'stat_3_label'           => 'nullable|string|max:100',
+            'pricing_starter'        => 'nullable|string|max:50',
+            'pricing_pro'            => 'nullable|string|max:50',
+            'pricing_enterprise'     => 'nullable|string|max:50',
+            'footer_desc'            => 'nullable|string|max:1000',
+            'footer_address'         => 'nullable|string|max:255',
+            'footer_phone'           => 'nullable|string|max:50',
+            'footer_email'           => 'nullable|string|max:100',
+            'copyright_text'         => 'nullable|string|max:255',
+            'logo'                   => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:3072',
+            'favicon'                => 'nullable|file|mimes:ico,png,svg,webp|max:1024',
+        ]);
+
+        DatabaseAutoRepair::repair();
+
+        $data = [
+            'brand_name'             => strip_tags($request->brand_name ?? 'VxPOS'),
+            'tagline'                => strip_tags($request->tagline ?? ''),
+            'hero_badge'             => strip_tags($request->hero_badge ?? ''),
+            'hero_title'             => strip_tags($request->hero_title ?? ''),
+            'hero_subtitle'          => strip_tags($request->hero_subtitle ?? ''),
+            'cta_btn_primary_text'   => strip_tags($request->cta_btn_primary_text ?? ''),
+            'cta_btn_primary_link'   => strip_tags($request->cta_btn_primary_link ?? ''),
+            'cta_btn_secondary_text' => strip_tags($request->cta_btn_secondary_text ?? ''),
+            'cta_btn_secondary_link' => strip_tags($request->cta_btn_secondary_link ?? ''),
+            'wa_number'              => preg_replace('/[^0-9]/', '', $request->wa_number ?? ''),
+            'wa_message'             => strip_tags($request->wa_message ?? ''),
+            'stat_1_val'             => strip_tags($request->stat_1_val ?? ''),
+            'stat_1_label'           => strip_tags($request->stat_1_label ?? ''),
+            'stat_2_val'             => strip_tags($request->stat_2_val ?? ''),
+            'stat_2_label'           => strip_tags($request->stat_2_label ?? ''),
+            'stat_3_val'             => strip_tags($request->stat_3_val ?? ''),
+            'stat_3_label'           => strip_tags($request->stat_3_label ?? ''),
+            'pricing_starter'        => strip_tags($request->pricing_starter ?? ''),
+            'pricing_pro'            => strip_tags($request->pricing_pro ?? ''),
+            'pricing_enterprise'     => strip_tags($request->pricing_enterprise ?? ''),
+            'footer_desc'            => strip_tags($request->footer_desc ?? ''),
+            'footer_address'         => strip_tags($request->footer_address ?? ''),
+            'footer_phone'           => strip_tags($request->footer_phone ?? ''),
+            'footer_email'           => strip_tags($request->footer_email ?? ''),
+            'copyright_text'         => strip_tags($request->copyright_text ?? ''),
+            'updated_at'             => now(),
+        ];
+
+        // Handle upload logo
+        if ($request->hasFile('logo')) {
+            $logoFile = $request->file('logo');
+            $logoDir = public_path('uploads/logo');
+            if (!file_exists($logoDir)) {
+                mkdir($logoDir, 0755, true);
+            }
+            $logoName = 'logo_' . time() . '.' . $logoFile->getClientOriginalExtension();
+            $logoFile->move($logoDir, $logoName);
+            $data['logo'] = '/uploads/logo/' . $logoName;
+        }
+
+        // Handle upload favicon
+        if ($request->hasFile('favicon')) {
+            $favFile = $request->file('favicon');
+            $favDir = public_path('uploads/favicon');
+            if (!file_exists($favDir)) {
+                mkdir($favDir, 0755, true);
+            }
+            $favName = 'favicon_' . time() . '.' . $favFile->getClientOriginalExtension();
+            $favFile->move($favDir, $favName);
+            $data['favicon'] = '/uploads/favicon/' . $favName;
+        }
+
+        DB::table('landing_page_settings')->updateOrInsert(
+            ['id' => 1],
+            $data
+        );
+
+        return redirect()->back()->with('success', 'Pengaturan CMS Landing Page berhasil diperbarui dan langsung tayang di beranda.');
     }
 }

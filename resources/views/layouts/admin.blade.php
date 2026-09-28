@@ -153,8 +153,19 @@
                 </div>
                 
                 @php
-                    $aksesArr = json_decode(Auth::user()->hak_akses, true) ?? [];
-                    $isGod = Auth::user()->role === 'superadmin';
+                    $currentUser = Auth::user();
+                    $aksesArr = json_decode($currentUser->hak_akses, true) ?? [];
+                    $isSuperAdmin = $currentUser->role === 'superadmin';
+                    $isAdminToko = in_array($currentUser->role, ['admin', 'admin_toko']);
+                    $isGod = $isSuperAdmin || $isAdminToko;
+
+                    $roleDefaults = \App\Http\Middleware\AksesModul::getDefaultPermissionsByRole($currentUser->role ?? '');
+                    $effectiveAkses = array_unique(array_merge($aksesArr, $roleDefaults));
+
+                    $canAccess = function($modul) use ($isGod, $effectiveAkses) {
+                        if ($isGod) return true;
+                        return in_array($modul, $effectiveAkses);
+                    };
                 @endphp
 
                 <!-- Nav Menu Items -->
@@ -170,11 +181,11 @@
                     </li>
                     
                     <!-- DATA MASTER -->
-                    @if($isGod || in_array('master_barang', $aksesArr) || in_array('manajemen_harga', $aksesArr))
+                    @if($canAccess('master_barang') || $canAccess('manajemen_harga'))
                     <p class="sidebar-heading text-[10px] uppercase text-slate-400 font-extrabold px-3 mb-1.5 mt-5 tracking-wider">Katalog</p>
                     @endif
                     
-                    @if($isGod || in_array('master_barang', $aksesArr))
+                    @if($canAccess('master_barang'))
                     <li>
                         <a href="{{ route('superadmin.barang.index') }}" title="Master Barang" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/barang*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-box-open w-5 text-center text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
@@ -183,7 +194,7 @@
                     </li>
                     @endif
                     
-                    @if($isGod || in_array('manajemen_harga', $aksesArr))
+                    @if($canAccess('manajemen_harga'))
                     <li>
                         <a href="{{ route('superadmin.harga.index') }}" title="Manajemen Harga" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/harga*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-tags w-5 text-center text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
@@ -193,11 +204,11 @@
                     @endif
 
                     <!-- OPERASIONAL -->
-                    @if($isGod || in_array('transaksi_sales', $aksesArr) || in_array('validasi_kasir', $aksesArr) || in_array('stok_gudang', $aksesArr))
+                    @if($canAccess('transaksi_sales') || $canAccess('validasi_kasir') || $canAccess('stok_gudang'))
                     <p class="sidebar-heading text-[10px] uppercase text-slate-400 font-extrabold px-3 mb-1.5 mt-5 tracking-wider">Operasional</p>
                     @endif
                     
-                    @if($isGod || in_array('transaksi_sales', $aksesArr))
+                    @if($canAccess('transaksi_sales'))
                     <li>
                         <a href="{{ route('superadmin.transaksi.create') }}" title="Kasir / Input POS" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/transaksi/create') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-cash-register w-5 text-center text-emerald-500 transition-colors"></i>
@@ -218,7 +229,7 @@
                     </li>
                     @endif
                     
-                    @if($isGod || in_array('validasi_kasir', $aksesArr))
+                    @if($canAccess('validasi_kasir'))
                     <li>
                         <a href="{{ route('superadmin.kasir.index') }}" title="Validasi Kasir" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/kasir*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
@@ -227,7 +238,7 @@
                     </li>
                     @endif
                     
-                    @if($isGod || in_array('stok_gudang', $aksesArr))
+                    @if($canAccess('stok_gudang'))
                     <li>
                         <a href="{{ route('superadmin.gudang.index') }}" title="Manajemen Gudang" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/gudang*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-boxes-stacked w-5 text-center text-amber-500 transition-colors"></i>
@@ -237,20 +248,20 @@
                     @endif
                     
                     <!-- KEUANGAN -->
-                    @if($isGod || in_array('laporan_penjualan', $aksesArr) || in_array('kelola_bonus', $aksesArr))
+                    @if($canAccess('laporan_penjualan') || $canAccess('kelola_bonus'))
                     <p class="sidebar-heading text-[10px] uppercase text-slate-400 font-extrabold px-3 mb-1.5 mt-5 tracking-wider">Keuangan</p>
                     @endif
                     
-                    @if($isGod || in_array('laporan_penjualan', $aksesArr))
+                    @if($canAccess('laporan_penjualan'))
                     <li>
-                        <a href="{{ route('superadmin.laporan.index') }}" title="Laporan Penjualan" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/laporan*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
+                        <a href="{{ route('superadmin.laporan.index') }}" title="Pusat Laporan" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/laporan*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-chart-pie w-5 text-center text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
-                            <span class="sidebar-label ml-2.5 text-xs">Laporan Penjualan</span>
+                            <span class="sidebar-label ml-2.5 text-xs">Pusat Laporan</span>
                         </a>
                     </li>
                     @endif
                     
-                    @if($isGod || in_array('kelola_bonus', $aksesArr))
+                    @if($canAccess('kelola_bonus'))
                     <li>
                         <a href="{{ route('superadmin.bonus.index') }}" title="Bonus & Komisi" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/bonus*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
                             <i class="fa-solid fa-hand-holding-dollar w-5 text-center text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
@@ -259,8 +270,8 @@
                     </li>
                     @endif
 
-                    <!-- SISTEM -->
-                    @if($isGod || in_array('manajemen_user', $aksesArr))
+                    <!-- SISTEM & PENGATURAN -->
+                    @if($canAccess('manajemen_user'))
                     <p class="sidebar-heading text-[10px] uppercase text-slate-400 font-extrabold px-3 mb-1.5 mt-5 tracking-wider">Pengaturan</p>
                     
                     <li>
@@ -289,8 +300,59 @@
                             <span class="sidebar-label ml-2.5 text-xs">Profil Toko</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('superadmin.backup.index') }}" title="Cadangan & Restore" class="sidebar-link flex items-center p-2.5 rounded-xl group transition-all {{ request()->is('superadmin/backup*') ? 'sidebar-active' : 'text-slate-600 hover:bg-slate-50' }}">
+                            <i class="fa-solid fa-shield-halved w-5 text-center text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
+                            <span class="sidebar-label ml-2.5 text-xs">Cadangan & Restore</span>
+                        </a>
+                    </li>
                     @endif
                 </ul>
+            </div>
+
+            <!-- Finnova Cloud Core Status Widget (Bottom Sidebar Graphic) -->
+            <div class="sidebar-full-logo my-4 px-1">
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-3.5 text-white shadow-xl shadow-indigo-950/20 border border-indigo-500/20 group hover:border-indigo-400/40 transition-all duration-300">
+                    <!-- Ambient Glow Orb -->
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/25 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+                    <div class="absolute -left-6 -top-6 w-20 h-20 bg-purple-500/15 rounded-full blur-xl pointer-events-none"></div>
+
+                    <!-- Header with Icon & Active Pill -->
+                    <div class="relative flex items-center justify-between gap-2 mb-2">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-xs shadow-md shadow-indigo-500/30 group-hover:rotate-6 transition-transform">
+                            <i class="fa-solid fa-cloud-bolt text-xs"></i>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-[9px] font-extrabold text-emerald-300 tracking-wide">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            ONLINE
+                        </span>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <div class="relative">
+                        <h4 class="text-xs font-black tracking-tight text-white flex items-center gap-1.5">
+                            VxPOS Cloud Core
+                        </h4>
+                        <p class="text-[10px] text-slate-400 mt-0.5 font-medium leading-tight">
+                            Multi-Store Realtime Sync & Proteksi Anti-Rugi
+                        </p>
+                    </div>
+
+                    <!-- Health / Security Info -->
+                    <div class="relative mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[10px]">
+                        <span class="text-slate-400 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-shield-halved text-indigo-400 text-[10px]"></i> Server Secure
+                        </span>
+                        <span class="font-extrabold text-indigo-300 text-[9px] bg-white/5 px-1.5 py-0.5 rounded border border-white/10">v2.5 PRO</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini Icon Mode for Collapsed Sidebar -->
+            <div class="sidebar-mini-logo hidden justify-center my-3">
+                <div title="VxPOS Cloud Core - Status Terhubung & Aman" class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-xs shadow-md shadow-indigo-600/30 cursor-pointer hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-cloud-bolt"></i>
+                </div>
             </div>
 
             <!-- Logout Button at Sidebar Bottom -->
@@ -324,7 +386,7 @@
                             {{ $namaToko }}
                         </span>
                         <span class="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-100">
-                            {{ strtoupper(Auth::user()->role) }}
+                            {{ strtoupper(Auth::user()->role ?? 'ADMIN') }}
                         </span>
                     </div>
                 </div>
@@ -334,18 +396,24 @@
                     <a href="{{ route('superadmin.dashboard') }}" class="pill-item {{ request()->is('superadmin/dashboard') ? 'pill-item-active' : '' }}">
                         <i class="fa-solid fa-chart-line mr-1.5 text-[11px]"></i> Overview
                     </a>
+                    @if($canAccess('transaksi_sales'))
                     <a href="{{ route('superadmin.transaksi.create') }}" class="pill-item {{ request()->is('superadmin/transaksi/create') ? 'pill-item-active' : '' }}">
                         <i class="fa-solid fa-cash-register mr-1.5 text-[11px]"></i> Kasir POS
                     </a>
                     <a href="{{ route('superadmin.transaksi.index') }}" class="pill-item {{ request()->is('superadmin/transaksi') ? 'pill-item-active' : '' }}">
                         <i class="fa-solid fa-receipt mr-1.5 text-[11px]"></i> Transaksi
                     </a>
+                    @endif
+                    @if($canAccess('stok_gudang'))
                     <a href="{{ route('superadmin.gudang.index') }}" class="pill-item {{ request()->is('superadmin/gudang*') ? 'pill-item-active' : '' }}">
                         <i class="fa-solid fa-boxes-stacked mr-1.5 text-[11px]"></i> Gudang
                     </a>
+                    @endif
+                    @if($canAccess('laporan_penjualan'))
                     <a href="{{ route('superadmin.laporan.index') }}" class="pill-item {{ request()->is('superadmin/laporan*') ? 'pill-item-active' : '' }}">
                         <i class="fa-solid fa-pie-chart mr-1.5 text-[11px]"></i> Laporan
                     </a>
+                    @endif
                 </div>
 
                 <!-- Right: Quick Action Buttons & Profile Avatar -->
@@ -361,11 +429,11 @@
                     <!-- User Profile Circle Avatar -->
                     <div class="flex items-center gap-2 pl-1">
                         <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-xs shadow-md shadow-indigo-500/20">
-                            {{ strtoupper(substr(Auth::user()->nama, 0, 1)) }}
+                            {{ strtoupper(substr(Auth::user()->nama ?? Auth::user()->name ?? 'U', 0, 1)) }}
                         </div>
                         <div class="hidden xl:block text-left text-xs">
-                            <p class="font-bold text-slate-800 leading-tight">{{ Auth::user()->nama }}</p>
-                            <p class="text-[10px] text-slate-400 leading-tight font-medium">{{ Auth::user()->username }}</p>
+                            <p class="font-bold text-slate-800 leading-tight">{{ Auth::user()->nama ?? Auth::user()->name ?? 'User' }}</p>
+                            <p class="text-[10px] text-slate-400 leading-tight font-medium">{{ Auth::user()->username ?? 'user' }}</p>
                         </div>
                     </div>
                 </div>
@@ -383,9 +451,230 @@
         </footer>
     </div>
 
-    <!-- Scripts: Mobile Drawer & Collapsible Auxiliary Pane Toggle -->
+    <!-- ======================================================== -->
+    <!-- GLOBAL FINNOVA CONFIRMATION MODAL (PENGGANTI POPUP BROWSER) -->
+    <!-- ======================================================== -->
+    <div id="globalFinnovaModal" class="fixed inset-0 z-[9999] bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+        <div id="globalFinnovaCard" class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 transform scale-95 opacity-0 transition-all duration-200">
+            <div class="text-center">
+                <div id="globalModalIconBg" class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center mb-4 text-2xl shadow-inner border border-amber-100">
+                    <i id="globalModalIcon" class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 id="globalModalTitle" class="text-lg font-extrabold text-slate-900 tracking-tight">Konfirmasi Tindakan</h3>
+                <p id="globalModalMessage" class="text-xs text-slate-500 mt-2 leading-relaxed px-2">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+                
+                <div class="mt-6 flex flex-col-reverse sm:flex-row gap-2.5">
+                    <button type="button" id="globalModalCancelBtn" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="button" id="globalModalConfirmBtn" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer">
+                        Ya, Lanjutkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL FINNOVA TOAST NOTIFICATION CONTAINER -->
+    <div id="globalToastContainer" class="fixed top-5 right-5 z-[10000] flex flex-col gap-2.5 pointer-events-none max-w-sm w-full"></div>
+
+    <!-- Scripts: Mobile Drawer, Collapsible Auxiliary Pane, Finnova Custom Popups & Toast -->
     <script>
+        // 1. Universal Finnova Confirm Modal API
+        window.finnovaConfirm = function(options) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('globalFinnovaModal');
+                const card = document.getElementById('globalFinnovaCard');
+                const titleEl = document.getElementById('globalModalTitle');
+                const msgEl = document.getElementById('globalModalMessage');
+                const confirmBtn = document.getElementById('globalModalConfirmBtn');
+                const cancelBtn = document.getElementById('globalModalCancelBtn');
+                const iconBg = document.getElementById('globalModalIconBg');
+                const iconEl = document.getElementById('globalModalIcon');
+
+                titleEl.textContent = options.title || 'Konfirmasi Tindakan';
+                msgEl.textContent = options.message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+                confirmBtn.textContent = options.confirmText || 'Ya, Lanjutkan';
+                cancelBtn.textContent = options.cancelText || 'Batal';
+
+                const type = options.type || 'warning';
+                if (type === 'danger') {
+                    iconBg.className = 'w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 mx-auto flex items-center justify-center mb-4 text-2xl shadow-inner border border-rose-100';
+                    iconEl.className = 'fa-solid fa-triangle-exclamation';
+                    confirmBtn.className = 'w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/30 transition-all cursor-pointer';
+                } else if (type === 'success') {
+                    iconBg.className = 'w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 mx-auto flex items-center justify-center mb-4 text-2xl shadow-inner border border-emerald-100';
+                    iconEl.className = 'fa-solid fa-circle-check';
+                    confirmBtn.className = 'w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition-all cursor-pointer';
+                } else {
+                    iconBg.className = 'w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 mx-auto flex items-center justify-center mb-4 text-2xl shadow-inner border border-indigo-100';
+                    iconEl.className = 'fa-solid fa-circle-question';
+                    confirmBtn.className = 'w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer';
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                requestAnimationFrame(() => {
+                    card.classList.remove('scale-95', 'opacity-0');
+                    card.classList.add('scale-100', 'opacity-100');
+                });
+
+                function cleanup(confirmed) {
+                    card.classList.remove('scale-100', 'opacity-100');
+                    card.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => {
+                        modal.classList.remove('flex');
+                        modal.classList.add('hidden');
+                    }, 180);
+                    confirmBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                    modal.onclick = null;
+                    document.removeEventListener('keydown', keyHandler);
+                    resolve(confirmed);
+                }
+
+                function keyHandler(e) {
+                    if (e.key === 'Escape') cleanup(false);
+                }
+
+                confirmBtn.onclick = () => cleanup(true);
+                cancelBtn.onclick = () => cleanup(false);
+                modal.onclick = (e) => { if (e.target === modal) cleanup(false); };
+                document.addEventListener('keydown', keyHandler);
+            });
+        };
+
+        // 2. Universal Finnova Toast Notification API
+        window.finnovaToast = function(message, type = 'info', duration = 3500) {
+            const container = document.getElementById('globalToastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto transform -translate-y-2 opacity-0 transition-all duration-300 flex items-center gap-3 p-3.5 rounded-2xl shadow-xl border bg-white text-slate-800 text-xs font-semibold';
+            
+            let iconClass = 'fa-solid fa-circle-info text-indigo-500';
+            let borderColor = 'border-slate-100';
+            if (type === 'danger' || type === 'error') {
+                iconClass = 'fa-solid fa-circle-xmark text-rose-500';
+                borderColor = 'border-rose-100 bg-rose-50/50';
+            } else if (type === 'warning') {
+                iconClass = 'fa-solid fa-triangle-exclamation text-amber-500';
+                borderColor = 'border-amber-100 bg-amber-50/50';
+            } else if (type === 'success') {
+                iconClass = 'fa-solid fa-circle-check text-emerald-500';
+                borderColor = 'border-emerald-100 bg-emerald-50/50';
+            }
+            toast.classList.add(...borderColor.split(' '));
+
+            toast.innerHTML = `
+                <div class="text-base"><i class="${iconClass}"></i></div>
+                <div class="flex-1 leading-snug">${message}</div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 transition-colors ml-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            `;
+
+            const closeBtn = toast.querySelector('button');
+            closeBtn.onclick = () => removeToast();
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-2', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            const timer = setTimeout(() => removeToast(), duration);
+
+            function removeToast() {
+                clearTimeout(timer);
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 250);
+            }
+        };
+
+        // Override default window.alert with modern Finnova Toast
+        window.alert = function(msg) {
+            window.finnovaToast(msg, 'warning', 4000);
+        };
+
+        // Global delegation for data-confirm forms
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form) return;
+
+            const confirmMsg = form.getAttribute('data-confirm');
+            if (confirmMsg && !form.dataset.confirmed) {
+                e.preventDefault();
+                const type = form.getAttribute('data-confirm-type') || 'warning';
+                const title = form.getAttribute('data-confirm-title') || 'Konfirmasi';
+                window.finnovaConfirm({
+                    title: title,
+                    message: confirmMsg,
+                    type: type,
+                    confirmText: form.getAttribute('data-confirm-btn') || 'Ya, Lanjutkan'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    }
+                });
+            }
+        });
+
+        // Global delegation for data-confirm links and buttons
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a[data-confirm], button[data-confirm]');
+            if (target && !target.dataset.confirmed && target.tagName === 'A') {
+                e.preventDefault();
+                const confirmMsg = target.getAttribute('data-confirm');
+                const type = target.getAttribute('data-confirm-type') || 'warning';
+                const title = target.getAttribute('data-confirm-title') || 'Konfirmasi';
+                window.finnovaConfirm({
+                    title: title,
+                    message: confirmMsg,
+                    type: type,
+                    confirmText: target.getAttribute('data-confirm-btn') || 'Ya, Lanjutkan'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        target.dataset.confirmed = 'true';
+                        window.location.href = target.href;
+                    }
+                });
+            }
+        });
+
+        // Auto-convert any lingering legacy confirm() inside onsubmit and onclick attributes
+        function convertLegacyConfirms() {
+            document.querySelectorAll('form[onsubmit*="confirm("]').forEach(form => {
+                const onsubmitStr = form.getAttribute('onsubmit');
+                const match = onsubmitStr.match(/confirm\(['"](.*?)['"]\)/);
+                if (match && match[1]) {
+                    form.removeAttribute('onsubmit');
+                    form.setAttribute('data-confirm', match[1]);
+                    if (match[1].toLowerCase().includes('hapus') || match[1].toLowerCase().includes('batalkan')) {
+                        form.setAttribute('data-confirm-type', 'danger');
+                    } else if (match[1].toLowerCase().includes('packing') || match[1].toLowerCase().includes('lunas') || match[1].toLowerCase().includes('setujui')) {
+                        form.setAttribute('data-confirm-type', 'success');
+                    }
+                }
+            });
+
+            document.querySelectorAll('a[onclick*="confirm("], button[onclick*="confirm("]').forEach(el => {
+                const onclickStr = el.getAttribute('onclick');
+                const match = onclickStr.match(/confirm\(['"](.*?)['"]\)/);
+                if (match && match[1]) {
+                    el.removeAttribute('onclick');
+                    el.setAttribute('data-confirm', match[1]);
+                    if (match[1].toLowerCase().includes('hapus') || match[1].toLowerCase().includes('batalkan')) {
+                        el.setAttribute('data-confirm-type', 'danger');
+                    }
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            convertLegacyConfirms();
+
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             const mobileBtn = document.getElementById('mobile-menu-btn');

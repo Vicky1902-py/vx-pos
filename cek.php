@@ -2,6 +2,13 @@
 /**
  * Script Diagnostik Mandiri VxPOS untuk Hosting Baru (cPanel / Rumahweb)
  */
+
+// Keamanan: Wajib menyertakan parameter key rahasia untuk mengakses diagnostik ini
+if (!isset($_GET['key']) || $_GET['key'] !== 'vxpos2026') {
+    http_response_code(403);
+    die('<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body style="background:#0f172a;color:#ef4444;font-family:sans-serif;padding:50px;text-align:center;"><h2>403 Forbidden: Akses diagnostik server dibatasi.</h2></body></html>');
+}
+
 header('Content-Type: text/html; charset=utf-8');
 error_reporting(E_ALL);
 ini_set('display_errors', '1');

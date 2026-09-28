@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use App\Services\TenantManager;
 
 class TransaksiController extends Controller
@@ -16,6 +17,8 @@ class TransaksiController extends Controller
 
         $listSales = DB::table('users')
             ->where('toko_id', $tokoId)
+            ->where('role', '!=', 'superadmin')
+            ->whereNotIn('username', ['vicky', 'admin'])
             ->select('id', 'nama', 'role')
             ->get(); 
 
@@ -132,16 +135,26 @@ class TransaksiController extends Controller
                 'updated_at'      => now(),
             ]);
 
-            if ($dp > 0) {
-                DB::table('riwayat_cicilan')->insert([
-                    'toko_id'       => $tokoId,
+            if ($dp > 0 && Schema::hasTable('riwayat_cicilan')) {
+                if (!Schema::hasColumn('riwayat_cicilan', 'created_at')) {
+                    try { DB::statement("ALTER TABLE `riwayat_cicilan` ADD COLUMN `created_at` TIMESTAMP NULL DEFAULT NULL"); } catch (\Throwable $e) {}
+                }
+                if (!Schema::hasColumn('riwayat_cicilan', 'updated_at')) {
+                    try { DB::statement("ALTER TABLE `riwayat_cicilan` ADD COLUMN `updated_at` TIMESTAMP NULL DEFAULT NULL"); } catch (\Throwable $e) {}
+                }
+
+                $cols = Schema::getColumnListing('riwayat_cicilan');
+                $cicilanData = [
                     'transaksi_id'  => $transaksiId,
                     'nominal_bayar' => $dp,
                     'keterangan'    => 'Pembayaran Uang Muka (DP Awal)',
-                    'tanggal_bayar' => now(),
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
-                ]);
+                ];
+                if (in_array('toko_id', $cols)) $cicilanData['toko_id'] = $tokoId;
+                if (in_array('tanggal_bayar', $cols)) $cicilanData['tanggal_bayar'] = now();
+                if (in_array('created_at', $cols)) $cicilanData['created_at'] = now();
+                if (in_array('updated_at', $cols)) $cicilanData['updated_at'] = now();
+
+                DB::table('riwayat_cicilan')->insert($cicilanData);
             }
 
             $detailData = [];
@@ -161,13 +174,16 @@ class TransaksiController extends Controller
             }
             DB::table('detail_transaksi')->insert($detailData);
 
-            DB::table('permintaan_gudang')->insert([
-                'toko_id'      => $tokoId,
+            $pgCols = Schema::hasTable('permintaan_gudang') ? Schema::getColumnListing('permintaan_gudang') : [];
+            $pgData = [
                 'transaksi_id' => $transaksiId,
                 'status'       => 'menunggu',
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ]);
+            ];
+            if (in_array('toko_id', $pgCols)) $pgData['toko_id'] = $tokoId;
+            if (in_array('created_at', $pgCols)) $pgData['created_at'] = now();
+            if (in_array('updated_at', $pgCols)) $pgData['updated_at'] = now();
+
+            DB::table('permintaan_gudang')->insert($pgData);
 
             DB::commit();
             return redirect()->back()->with('success', "Transaksi berhasil dibuat dengan No. Invoice: $noInvoice. Menunggu penyiapan Gudang.");
@@ -197,11 +213,16 @@ class TransaksiController extends Controller
 
     public function destroy($id)
     {
+        $tokoId = TenantManager::getTokoId();
         DB::beginTransaction();
         try {
-            $transaksi = DB::table('transaksi')->where('id', $id)->first();
+            $query = DB::table('transaksi')->where('id', $id);
+            if (!TenantManager::isPlatformAdmin()) {
+                $query->where('toko_id', $tokoId);
+            }
+            $transaksi = $query->first();
             if (!$transaksi) {
-                return redirect()->back()->withErrors('Transaksi tidak ditemukan.');
+                return redirect()->back()->withErrors('Transaksi tidak ditemukan atau bukan milik toko Anda.');
             }
 
             // Jika pesanan sudah disiapkan gudang atau selesai, kembalikan stok fisik ke gudang!
@@ -236,14 +257,20 @@ class TransaksiController extends Controller
     
     public function printNota($id)
     {
-        $transaksi = DB::table('transaksi')
+        $tokoId = TenantManager::getTokoId();
+        $query = DB::table('transaksi')
             ->leftJoin('users as sales', 'transaksi.sales_id', '=', 'sales.id')
             ->select('transaksi.*', 'sales.nama as nama_sales')
-            ->where('transaksi.id', $id)
-            ->first();
+            ->where('transaksi.id', $id);
+
+        if (!TenantManager::isPlatformAdmin()) {
+            $query->where('transaksi.toko_id', $tokoId);
+        }
+
+        $transaksi = $query->first();
 
         if (!$transaksi) {
-            return redirect()->back()->withErrors('Data transaksi tidak ditemukan.');
+            return redirect()->back()->withErrors('Data transaksi tidak ditemukan atau bukan milik toko Anda.');
         }
 
         $detail = DB::table('detail_transaksi')
@@ -257,7 +284,8 @@ class TransaksiController extends Controller
             ->orderBy('tanggal_bayar', 'asc')
             ->get();
 
-        $pengaturan = DB::table('pengaturan_toko')->first();
+        $notaTokoId = $transaksi->toko_id ?? $tokoId;
+        $pengaturan = DB::table('pengaturan_toko')->where('toko_id', $notaTokoId)->first() ?? DB::table('pengaturan_toko')->first();
         
         $teksTerbilang = $this->terbilang($transaksi->total_transaksi) . ' Rupiah';
 
@@ -270,10 +298,15 @@ class TransaksiController extends Controller
             'nominal_cicilan' => 'required|numeric|min:1'
         ]);
 
+        $tokoId = TenantManager::getTokoId();
         DB::beginTransaction();
         try {
-            $transaksi = DB::table('transaksi')->where('id', $id)->first();
-            if (!$transaksi) return redirect()->back()->withErrors('Transaksi tidak ditemukan.');
+            $query = DB::table('transaksi')->where('id', $id);
+            if (!TenantManager::isPlatformAdmin()) {
+                $query->where('toko_id', $tokoId);
+            }
+            $transaksi = $query->first();
+            if (!$transaksi) return redirect()->back()->withErrors('Transaksi tidak ditemukan atau bukan milik toko Anda.');
             if ($transaksi->piutang <= 0) return redirect()->back()->withErrors('Transaksi ini sudah dilunasi.');
 
             $nominalCicilan = (float) $request->nominal_cicilan;
@@ -295,12 +328,27 @@ class TransaksiController extends Controller
                 'updated_at' => now(),
             ]);
 
-            DB::table('riwayat_cicilan')->insert([
-                'transaksi_id'  => $id,
-                'nominal_bayar' => $nominalCicilan,
-                'keterangan'    => 'Pembayaran Cicilan Piutang',
-                'tanggal_bayar' => now()
-            ]);
+            if (Schema::hasTable('riwayat_cicilan')) {
+                if (!Schema::hasColumn('riwayat_cicilan', 'created_at')) {
+                    try { DB::statement("ALTER TABLE `riwayat_cicilan` ADD COLUMN `created_at` TIMESTAMP NULL DEFAULT NULL"); } catch (\Throwable $e) {}
+                }
+                if (!Schema::hasColumn('riwayat_cicilan', 'updated_at')) {
+                    try { DB::statement("ALTER TABLE `riwayat_cicilan` ADD COLUMN `updated_at` TIMESTAMP NULL DEFAULT NULL"); } catch (\Throwable $e) {}
+                }
+
+                $cols = Schema::getColumnListing('riwayat_cicilan');
+                $cicilanData = [
+                    'transaksi_id'  => $id,
+                    'nominal_bayar' => $nominalCicilan,
+                    'keterangan'    => 'Pembayaran Cicilan Piutang',
+                ];
+                if (in_array('toko_id', $cols)) $cicilanData['toko_id'] = $transaksi->toko_id ?? $tokoId;
+                if (in_array('tanggal_bayar', $cols)) $cicilanData['tanggal_bayar'] = now();
+                if (in_array('created_at', $cols)) $cicilanData['created_at'] = now();
+                if (in_array('updated_at', $cols)) $cicilanData['updated_at'] = now();
+
+                DB::table('riwayat_cicilan')->insert($cicilanData);
+            }
 
             DB::commit();
             $pesan = $piutangBaru == 0 

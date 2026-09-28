@@ -1,11 +1,21 @@
+@php
+    $cms = \App\Services\LandingPageService::get();
+    $cleanWa = !empty($cms->wa_number) ? preg_replace('/[^0-9]/', '', $cms->wa_number) : '6281234567890';
+    $waText = urlencode($cms->wa_message ?? 'Halo Admin VxPOS, saya ingin konsultasi sistem POS dan implementasi toko');
+    $waUrl = "https://wa.me/{$cleanWa}?text={$waText}";
+@endphp
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VxPOS | Sistem Kasir & ERP Terpadu Multi-Toko</title>
+    <title>{{ $cms->brand_name ?? 'VxPOS' }} | {{ $cms->tagline ?? 'Sistem Kasir & ERP Terpadu Multi-Toko' }}</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    @if(!empty($cms->favicon))
+        <link rel="icon" href="{{ asset($cms->favicon) }}">
+    @else
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    @endif
     
     <!-- Tailwind CSS CDN & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,11 +78,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <!-- Brand Logo -->
             <a href="/" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-bolt-lightning text-lg"></i>
-                </div>
+                @if(!empty($cms->logo))
+                    <img src="{{ asset($cms->logo) }}" alt="{{ $cms->brand_name ?? 'VxPOS' }}" class="h-10 w-auto max-w-[160px] object-contain">
+                @else
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-bolt-lightning text-lg"></i>
+                    </div>
+                @endif
                 <div>
-                    <span class="text-xl font-extrabold tracking-tight text-slate-900">Vx<span class="text-brand-600">POS</span></span>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">{{ $cms->brand_name ?? 'VxPOS' }}</span>
                     <span class="hidden sm:inline-block text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 ml-2 bg-indigo-50 text-brand-600 rounded-full border border-indigo-100">Multi-Store</span>
                 </div>
             </a>
@@ -82,7 +96,8 @@
                 <a href="#fitur" class="hover:text-brand-600 transition-colors">Fitur Utama</a>
                 <a href="#multi-toko" class="hover:text-brand-600 transition-colors">Multi-Toko</a>
                 <a href="#keunggulan" class="hover:text-brand-600 transition-colors">Sistem Anti-Rugi</a>
-                <a href="#konsultasi" class="hover:text-brand-600 transition-colors">Konsultasi Admin</a>
+                <a href="#pricing" class="hover:text-brand-600 transition-colors">Paket Harga</a>
+                <a href="#konsultasi" class="hover:text-brand-600 transition-colors">Konsultasi</a>
                 <a href="#faq" class="hover:text-brand-600 transition-colors">FAQ</a>
             </nav>
 
@@ -109,32 +124,32 @@
             <!-- Badge -->
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50/80 border border-indigo-100/80 text-brand-700 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
                 <span class="flex h-2 w-2 rounded-full bg-brand-600 animate-ping"></span>
-                <span>Platform Kasir & ERP Terpadu untuk Banyak Toko</span>
+                <span>{{ $cms->hero_badge ?? 'Platform Kasir & ERP Terpadu untuk Banyak Toko' }}</span>
             </div>
 
             <!-- Headline -->
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] max-w-4xl mx-auto mb-6">
-                Satu Platform Cerdas untuk Mengelola <span class="gradient-text">Banyak Cabang & Toko</span>
+                {!! nl2br(e($cms->hero_title ?? 'Satu Platform Cerdas untuk Mengelola Banyak Cabang & Toko')) !!}
             </h1>
 
             <!-- Subtitle -->
             <p class="text-base sm:text-lg lg:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-                Kelola kasir cepat, alur gudang fisik terverifikasi, proteksi harga modal anti-rugi, serta buku piutang dan slip gaji di semua cabang toko Anda dari satu dashboard terpusat.
+                {{ $cms->hero_subtitle ?? 'Kelola kasir cepat, alur gudang fisik terverifikasi, proteksi harga modal anti-rugi, serta buku piutang dan slip gaji di semua cabang toko Anda dari satu dashboard terpusat.' }}
             </p>
 
             <!-- CTA Buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                <a href="{{ route('login.demo.quick', 'admin') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-xl shadow-amber-400/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
+                <a href="{{ $cms->cta_btn_primary_link ?: route('login.demo.quick', 'admin') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-xl shadow-amber-400/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
                     <i class="fa-solid fa-flask-vial"></i>
-                    <span>Coba Demo 1-Klik</span>
+                    <span>{{ $cms->cta_btn_primary_text ?: 'Coba Demo 1-Klik' }}</span>
                 </a>
                 <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-slate-900 hover:bg-brand-600 shadow-xl shadow-slate-900/10 hover:shadow-brand-600/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3">
                     <i class="fa-solid fa-store"></i>
                     <span>Buka Sistem Toko</span>
                 </a>
-                <a href="#konsultasi" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-headset text-brand-600"></i>
-                    <span>Konsultasi ke Admin</span>
+                <a href="{{ $cms->cta_btn_secondary_link ?: $waUrl }}" target="{{ str_starts_with($cms->cta_btn_secondary_link ?? '', 'http') || $cms->cta_btn_secondary_link == null ? '_blank' : '_self' }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-emerald-600 text-lg"></i>
+                    <span>{{ $cms->cta_btn_secondary_text ?: 'Konsultasi WhatsApp' }}</span>
                 </a>
             </div>
 
@@ -228,6 +243,22 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Social Proof Stats Showcase from CMS -->
+            <div class="max-w-4xl mx-auto mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center">
+                    <p class="text-2xl sm:text-3xl font-black text-brand-600">{{ $cms->stat_1_val ?? '10.000+' }}</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">{{ $cms->stat_1_label ?? 'Transaksi Diproses' }}</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center">
+                    <p class="text-2xl sm:text-3xl font-black text-emerald-600">{{ $cms->stat_2_val ?? '99.9%' }}</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">{{ $cms->stat_2_label ?? 'Akurasi Stok Gudang' }}</p>
+                </div>
+                <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm text-center">
+                    <p class="text-2xl sm:text-3xl font-black text-indigo-600">{{ $cms->stat_3_val ?? '0%' }}</p>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">{{ $cms->stat_3_label ?? 'Kebocoran Diskon' }}</p>
                 </div>
             </div>
         </div>
@@ -363,7 +394,104 @@
         </div>
     </section>
 
-    <!-- Section: Konsultasi Admin (Pengganti Paket Harga) -->
+    <!-- Section: Pilihan Paket Langganan SaaS -->
+    <section id="pricing" class="py-20 bg-slate-50 border-t border-slate-200/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider bg-brand-50 border border-brand-100 px-3.5 py-1.5 rounded-full inline-block mb-3">
+                    Transparan & Tanpa Biaya Tersembunyi
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Pilihan Paket Fleksibel Sesuai Skala Toko
+                </h2>
+                <p class="text-slate-600 text-base sm:text-lg mt-2">
+                    Mulai dari toko tunggal hingga jaringan retail waralaba dengan banyak cabang.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Starter -->
+                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold uppercase px-3 py-1 bg-slate-100 text-slate-700 rounded-full">Starter</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900">Retail Pemula</h3>
+                        <p class="text-xs text-slate-500 mt-1">Cocok untuk toko mandiri atau rintisan.</p>
+                        <div class="mt-6 mb-6">
+                            <span class="text-3xl sm:text-4xl font-extrabold text-slate-900">Rp {{ $cms->pricing_starter ?? '99.000' }}</span>
+                            <span class="text-xs text-slate-500 font-semibold">/ bulan</span>
+                        </div>
+                        <ul class="space-y-3 text-xs text-slate-600">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> 1 Cabang Toko</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Hingga 3 Akun Staf/Kasir</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Kasir POS & Cetak Struk</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Laporan Keuangan Standar</li>
+                        </ul>
+                    </div>
+                    <a href="{{ $waUrl }}" target="_blank" class="mt-8 w-full py-3 text-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition">
+                        Pilih Paket Starter
+                    </a>
+                </div>
+
+                <!-- Pro (Featured) -->
+                <div class="bg-gradient-to-b from-indigo-900 to-slate-900 text-white rounded-3xl p-8 border-2 border-brand-500 shadow-2xl relative flex flex-col justify-between transform md:-translate-y-2">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[10px] uppercase px-3 py-1 rounded-full shadow-md tracking-wider">
+                        PALING POPULER
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold uppercase px-3 py-1 bg-brand-500/20 text-brand-300 rounded-full border border-brand-500/30">Pro Multi-User</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Toko Ritel & Grosir</h3>
+                        <p class="text-xs text-slate-300 mt-1">Solusi komplit anti-rugi dan validasi gudang.</p>
+                        <div class="mt-6 mb-6">
+                            <span class="text-3xl sm:text-4xl font-extrabold text-white">Rp {{ $cms->pricing_pro ?? '299.000' }}</span>
+                            <span class="text-xs text-slate-400 font-semibold">/ bulan</span>
+                        </div>
+                        <ul class="space-y-3 text-xs text-slate-200">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Multi-Toko & Multi-Cabang</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Hingga 10 Akun Staf (Kasir, Admin, Sales, Gudang)</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Proteksi Margin & Anti-Rugi Modal</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Verifikasi Fisik Gudang & Mutasi</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Buku Piutang & Kartu Cicilan</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-400"></i> Payroll & Komisi Sales Terpadu</li>
+                        </ul>
+                    </div>
+                    <a href="{{ $waUrl }}" target="_blank" class="mt-8 w-full py-3.5 text-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-lg transition">
+                        Dapatkan Paket Pro Sekarang
+                    </a>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold uppercase px-3 py-1 bg-purple-50 text-purple-700 rounded-full">Enterprise</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900">Jaringan Cabang Besar</h3>
+                        <p class="text-xs text-slate-500 mt-1">Untuk distributor atau pemilik rantai franchise.</p>
+                        <div class="mt-6 mb-6">
+                            <span class="text-3xl sm:text-4xl font-extrabold text-slate-900">Rp {{ $cms->pricing_enterprise ?? '799.000' }}</span>
+                            <span class="text-xs text-slate-500 font-semibold">/ bulan</span>
+                        </div>
+                        <ul class="space-y-3 text-xs text-slate-600">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Unlimited Cabang & Toko Mitra</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Unlimited Pengguna & Staf</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Dedicated Database Server Support</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Prioritas Bantuan 24/7 & Training Onboarding</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Custom Fitur & Laporan ERP</li>
+                        </ul>
+                    </div>
+                    <a href="{{ $waUrl }}" target="_blank" class="mt-8 w-full py-3 text-center rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition">
+                        Konsultasi Paket Enterprise
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Konsultasi Admin -->
     <section id="konsultasi" class="py-24 bg-gradient-to-b from-white via-slate-50 to-white border-t border-slate-100 relative overflow-hidden">
         <!-- Background Accent Orbs -->
         <div class="absolute top-1/2 left-0 w-72 h-72 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -427,14 +555,14 @@
                         </p>
 
                         <!-- WhatsApp Button -->
-                        <a href="https://wa.me/6281234567890?text=Halo%20Admin%20VxPOS,%20saya%20ingin%20konsultasi%20sistem%20POS%20dan%20implementasi%20toko" target="_blank" 
+                        <a href="{{ $waUrl }}" target="_blank" 
                            class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5">
                             <i class="fa-brands fa-whatsapp text-lg"></i>
                             <span>Konsultasi via WhatsApp</span>
                         </a>
 
                         <!-- Email Button -->
-                        <a href="mailto:admin@vxpos.id?subject=Konsultasi%20Implementasi%20Sistem%20VxPOS&body=Halo%20Admin%20VxPOS,%0A%0ASaya%20tertarik%20untuk%20konsultasi%20mengenai%20implementasi%20sistem%20VxPOS%20untuk%20toko%20saya.%0A%0ANama:%0ANama%20Toko:%0AJumlah%20Cabang:%0ANo.%20WhatsApp:" 
+                        <a href="mailto:{{ $cms->footer_email ?: 'admin@vxpos.id' }}?subject=Konsultasi%20Implementasi%20Sistem%20VxPOS&body=Halo%20Admin%20VxPOS,%0A%0ASaya%20tertarik%20untuk%20konsultasi%20mengenai%20implementasi%20sistem%20VxPOS%20untuk%20toko%20saya.%0A%0ANama:%0ANama%20Toko:%0AJumlah%20Cabang:%0ANo.%20WhatsApp:" 
                            class="w-full py-3.5 px-5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/15 flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5">
                             <i class="fa-regular fa-envelope text-lg"></i>
                             <span>Hubungi via Email</span>
@@ -496,25 +624,40 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-800">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
-                        <i class="fa-solid fa-bolt-lightning text-sm"></i>
-                    </div>
-                    <span class="text-xl font-extrabold text-white">Vx<span class="text-brand-500">POS</span></span>
+                    @if(!empty($cms->logo))
+                        <img src="{{ asset($cms->logo) }}" alt="{{ $cms->brand_name ?? 'VxPOS' }}" class="h-9 w-auto max-w-[140px] object-contain">
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
+                            <i class="fa-solid fa-bolt-lightning text-sm"></i>
+                        </div>
+                    @endif
+                    <span class="text-xl font-extrabold text-white">{{ $cms->brand_name ?? 'VxPOS' }}</span>
                 </div>
-                <p class="text-xs text-slate-500 text-center md:text-right">
-                    Solusi POS & Manajemen Multi-Toko Modern &bull; Powered by Laravel 11
+                <p class="text-xs text-slate-500 text-center md:text-right max-w-md">
+                    {{ $cms->footer_desc ?? 'Solusi POS & Manajemen Multi-Toko Modern • Powered by Laravel 11' }}
                 </p>
             </div>
             <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-                <p>&copy; 2026 VxPOS Multi-Store Platform. Hak Cipta by. Vicky Koroh.</p>
+                <p>&copy; {{ date('Y') }} {{ strip_tags($cms->brand_name ?? 'VxPOS') }} Multi-Store Platform. Hak Cipta by. Vicky Koroh.</p>
                 <div class="flex gap-6">
                     <a href="{{ route('login') }}" class="hover:text-white transition-colors">Login Toko</a>
                     <a href="#fitur" class="hover:text-white transition-colors">Fitur</a>
+                    <a href="#pricing" class="hover:text-white transition-colors">Harga</a>
                     <a href="#konsultasi" class="hover:text-white transition-colors">Konsultasi</a>
                 </div>
             </div>
         </div>
     </footer>
+
+    <!-- Floating WhatsApp Widget -->
+    @if(!empty($cms->wa_number))
+        <a href="{{ $waUrl }}" target="_blank" 
+           class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 transition-all group" 
+           title="Chat WhatsApp dengan Tim Admin">
+            <i class="fa-brands fa-whatsapp text-2xl animate-bounce"></i>
+            <span class="hidden sm:inline font-bold text-xs tracking-wide">Konsultasi Admin</span>
+        </a>
+    @endif
 
     <!-- Interactive Motion Graphic Canvas Script -->
     <script>

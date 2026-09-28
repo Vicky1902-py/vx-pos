@@ -19,13 +19,17 @@ class UserController extends Controller
         $users = DB::table('users')
             ->leftJoin('toko', 'users.toko_id', '=', 'toko.id')
             ->select('users.*', 'toko.nama_toko')
+            ->where('users.role', '!=', 'superadmin')
+            ->whereNotIn('users.username', ['vicky', 'admin'])
             ->when(!$isPlatform, function ($q) use ($tokoId) {
-                return $q->where('users.toko_id', $tokoId)->where('users.role', '!=', 'superadmin');
+                return $q->where('users.toko_id', $tokoId);
             })
             ->when($search, function ($query, $search) {
-                return $query->where('users.nama', 'like', "%{$search}%")
-                             ->orWhere('users.username', 'like', "%{$search}%")
-                             ->orWhere('users.role', 'like', "%{$search}%");
+                return $query->where(function($sub) use ($search) {
+                    $sub->where('users.nama', 'like', "%{$search}%")
+                        ->orWhere('users.username', 'like', "%{$search}%")
+                        ->orWhere('users.role', 'like', "%{$search}%");
+                });
             })
             ->orderBy('users.id', 'desc')
             ->paginate(10);
@@ -47,14 +51,21 @@ class UserController extends Controller
             }
         }
 
+        $allowedRoles = $isPlatform ? 'superadmin,admin,kasir,sales,gudang' : 'admin,kasir,sales,gudang';
+
         $request->validate([
             'nama'      => 'required|string|max:255',
             'username'  => 'required|string|max:50|unique:users,username',
             'password'  => 'required|string|min:3',
-            'role'      => 'required|in:superadmin,admin,kasir,sales,gudang',
-            'status'    => 'required|in:aktif,nonaktif',
-            'hak_akses' => 'nullable|array' // Menangkap data checkbox
+            'role'       => 'required|in:' . $allowedRoles,
+            'status'     => 'required|in:aktif,nonaktif',
+            'gaji_pokok' => 'nullable|numeric|min:0',
+            'hak_akses'  => 'nullable|array' // Menangkap data checkbox
         ]);
+
+        if (!$isPlatform && $request->role === 'superadmin') {
+            return redirect()->back()->withErrors('Anda tidak memiliki wewenang untuk membuat akun Platform Superadmin.');
+        }
 
         $tableCols = Schema::getColumnListing('users');
         $userData = [
@@ -69,8 +80,13 @@ class UserController extends Controller
         if (in_array('email', $tableCols)) $userData['email'] = $request->username . '@' . ($tokoId ?? '1') . '.vxpos.local';
         if (in_array('toko_id', $tableCols)) $userData['toko_id'] = $tokoId;
         if (in_array('role', $tableCols)) $userData['role'] = $request->role;
+        if (in_array('gaji_pokok', $tableCols)) $userData['gaji_pokok'] = (float)($request->gaji_pokok ?: 0);
+        $hakAksesToSave = (!empty($request->hak_akses) && is_array($request->hak_akses))
+            ? $request->hak_akses
+            : \App\Http\Middleware\AksesModul::getDefaultPermissionsByRole($request->role);
+
         if (in_array('status', $tableCols)) $userData['status'] = $request->status;
-        if (in_array('hak_akses', $tableCols)) $userData['hak_akses'] = json_encode($request->hak_akses ?? []);
+        if (in_array('hak_akses', $tableCols)) $userData['hak_akses'] = json_encode($hakAksesToSave);
 
         DB::table('users')->insert($userData);
 
@@ -79,20 +95,42 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
+        $isPlatform = TenantManager::isPlatformAdmin();
+        $tokoId = TenantManager::getTokoId();
+
+        $targetUser = DB::table('users')->where('id', $id)->first();
+        if (!$targetUser) {
+            return redirect()->back()->withErrors('Data pengguna tidak ditemukan.');
+        }
+
+        if (!$isPlatform) {
+            if ($targetUser->toko_id != $tokoId || $targetUser->role === 'superadmin' || in_array($targetUser->username, ['vicky', 'admin'])) {
+                return redirect()->back()->withErrors('Anda tidak memiliki wewenang untuk mengedit akun ini.');
+            }
+        }
+
+        $allowedRoles = $isPlatform ? 'superadmin,admin,kasir,sales,gudang' : 'admin,kasir,sales,gudang';
+
         $request->validate([
-            'nama'      => 'required|string|max:255',
-            'username'  => 'required|string|max:50|unique:users,username,'.$id,
-            'role'      => 'required|in:superadmin,admin,kasir,sales,gudang',
-            'status'    => 'required|in:aktif,nonaktif',
-            'hak_akses' => 'nullable|array'
+            'nama'       => 'required|string|max:255',
+            'username'   => 'required|string|max:50|unique:users,username,'.$id,
+            'role'       => 'required|in:' . $allowedRoles,
+            'status'     => 'required|in:aktif,nonaktif',
+            'gaji_pokok' => 'nullable|numeric|min:0',
+            'hak_akses'  => 'nullable|array'
         ]);
+
+        $hakAksesToSave = (!empty($request->hak_akses) && is_array($request->hak_akses))
+            ? $request->hak_akses
+            : \App\Http\Middleware\AksesModul::getDefaultPermissionsByRole($request->role);
 
         $updateData = [
             'nama'       => $request->nama,
             'username'   => $request->username,
             'role'       => $request->role,
             'status'     => $request->status,
-            'hak_akses'  => json_encode($request->hak_akses ?? []),
+            'gaji_pokok' => (float)($request->gaji_pokok ?: 0),
+            'hak_akses'  => json_encode($hakAksesToSave),
             'updated_at' => now()->toDateTimeString(),
         ];
 
@@ -113,8 +151,24 @@ class UserController extends Controller
 
     public function destroy($id)
     {
+        $isPlatform = TenantManager::isPlatformAdmin();
+        $tokoId = TenantManager::getTokoId();
+
         if (auth()->id() == $id) {
             return redirect()->back()->withErrors('Anda tidak dapat menghapus akun Anda sendiri saat sedang login.');
+        }
+
+        $targetUser = DB::table('users')->where('id', $id)->first();
+        if (!$targetUser) {
+            return redirect()->back()->withErrors('Data pengguna tidak ditemukan.');
+        }
+
+        if ($targetUser->role === 'superadmin' || in_array($targetUser->username, ['vicky', 'admin'])) {
+            return redirect()->back()->withErrors('Akun Platform Superadmin Utama tidak dapat dihapus.');
+        }
+
+        if (!$isPlatform && $targetUser->toko_id != $tokoId) {
+            return redirect()->back()->withErrors('Anda tidak memiliki wewenang untuk menghapus akun pengguna dari toko lain.');
         }
 
         DB::table('users')->where('id', $id)->delete();

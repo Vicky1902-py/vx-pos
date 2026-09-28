@@ -88,9 +88,9 @@
                     <td class="py-4 px-6 text-center">
                         <div class="flex items-center justify-center gap-3">
                             <button onclick="openEditModal({{ json_encode($item) }})" class="text-amber-500 hover:text-amber-600 transition-colors"><i class="fa-regular fa-pen-to-square text-lg"></i></button>
-                            <form action="{{ route('superadmin.barang.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus produk ini secara permanen? Data stok dan harga juga akan terhapus.');" class="inline">
+                            <form action="{{ route('superadmin.barang.destroy', $item->id) }}" method="POST" data-confirm="Hapus produk ini secara permanen? Data stok dan harga juga akan terhapus." data-confirm-type="danger" data-confirm-title="Hapus Produk" data-confirm-btn="Ya, Hapus" class="inline">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-500 transition-colors"><i class="fa-regular fa-trash-can text-lg"></i></button>
+                                <button type="submit" class="text-red-400 hover:text-red-500 transition-colors cursor-pointer"><i class="fa-regular fa-trash-can text-lg"></i></button>
                             </form>
                         </div>
                     </td>
@@ -184,10 +184,10 @@
         </div>
         <div class="p-6 space-y-4">
             <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-[#7367f0] transition-colors relative">
-                <input type="file" id="excelFile" accept=".xlsx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleExcelDrop(event)">
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleExcelDrop(event)">
                 <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 mb-2"></i>
-                <p id="uploadPrompt" class="text-sm font-medium text-gray-600">Pilih atau letakkan file Excel template Anda di sini</p>
-                <p class="text-xs text-gray-400 mt-1">Sistem akan otomatis mendeteksi Harga dan memperbarui stok jika kode barang sudah ada.</p>
+                <p id="uploadPrompt" class="text-sm font-medium text-gray-600">Pilih atau letakkan file Excel / CSV (.xlsx, .xls, .csv) di sini</p>
+                <p class="text-xs text-gray-400 mt-1">Sistem otomatis membaca kolom kode, nama, stok, dan 3 tingkat harga (Anti-Rugi).</p>
             </div>
             
             <div id="previewArea" class="hidden">
@@ -273,7 +273,11 @@
             parsedExcelData = XLSX.utils.sheet_to_json(worksheet);
 
             if(parsedExcelData.length === 0) {
-                alert('File kosong atau format struktur tidak sesuai.');
+                if (window.finnovaToast) {
+                    window.finnovaToast('File kosong atau format struktur tidak sesuai.', 'warning');
+                } else {
+                    alert('File kosong atau format struktur tidak sesuai.');
+                }
                 return;
             }
 
@@ -281,14 +285,22 @@
             previewBody.innerHTML = '';
             parsedExcelData.slice(0, 5).forEach(row => {
                 const tr = document.createElement('tr');
+                const kode = row['Kode Barang'] || row['kode_barang'] || row['Kode'] || row['kode'] || '-';
+                const nama = row['Nama Barang'] || row['nama_barang'] || row['Nama'] || row['nama'] || '-';
+                const stok = row['Stok Tersedia'] || row['stok_tersedia'] || row['Stok'] || row['stok'] || 0;
+                const modal = row['Harga Modal'] || row['harga_modal'] || row['Modal'] || row['modal'] || 0;
+                const min = row['Harga Minimum'] || row['harga_minimum'] || row['Harga Min'] || row['harga_min'] || 0;
+                const jual = row['Harga Jual'] || row['harga_jual'] || row['Harga'] || row['harga'] || 0;
+                const status = row['Status'] || row['status'] || 'aktif';
+
                 tr.innerHTML = `
-                    <td class="p-2 border-b font-medium text-indigo-600">${row['Kode Barang'] || row['kode_barang'] || '-'}</td>
-                    <td class="p-2 border-b">${row['Nama Barang'] || row['nama_barang'] || '-'}</td>
-                    <td class="p-2 border-b font-bold text-emerald-600">${row['Stok Tersedia'] || 0}</td>
-                    <td class="p-2 border-b">${row['Harga Modal'] ? 'Rp ' + row['Harga Modal'].toLocaleString('id-ID') : '-'}</td>
-                    <td class="p-2 border-b text-orange-500">${row['Harga Minimum'] ? 'Rp ' + row['Harga Minimum'].toLocaleString('id-ID') : '-'}</td>
-                    <td class="p-2 border-b text-[#7367f0] font-bold">${row['Harga Jual'] ? 'Rp ' + row['Harga Jual'].toLocaleString('id-ID') : '-'}</td>
-                    <td class="p-2 border-b">${row['Status'] || row['status'] || 'aktif'}</td>
+                    <td class="p-2 border-b font-medium text-indigo-600">${kode}</td>
+                    <td class="p-2 border-b">${nama}</td>
+                    <td class="p-2 border-b font-bold text-emerald-600">${stok}</td>
+                    <td class="p-2 border-b">${Number(modal) ? 'Rp ' + Number(modal).toLocaleString('id-ID') : '-'}</td>
+                    <td class="p-2 border-b text-orange-500">${Number(min) ? 'Rp ' + Number(min).toLocaleString('id-ID') : '-'}</td>
+                    <td class="p-2 border-b text-[#7367f0] font-bold">${Number(jual) ? 'Rp ' + Number(jual).toLocaleString('id-ID') : '-'}</td>
+                    <td class="p-2 border-b">${status}</td>
                 `;
                 previewBody.appendChild(tr);
             });
@@ -304,7 +316,7 @@
         if(parsedExcelData.length === 0) return;
 
         const btn = document.getElementById('btnProsesImport');
-        btn.innerText = 'Memproses Data...';
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Mengimpor Data...';
         btn.setAttribute('disabled', 'true');
 
         fetch("{{ route('superadmin.barang.import') }}", {
@@ -318,16 +330,29 @@
         .then(response => response.json())
         .then(res => {
             if(res.success) {
-                alert(res.message);
-                window.location.reload();
+                if (window.finnovaToast) {
+                    window.finnovaToast(res.message, 'success', 3500);
+                }
+                toggleModal('modalMasal');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
             } else {
-                alert('Gagal: ' + res.message);
+                if (window.finnovaToast) {
+                    window.finnovaToast('Gagal: ' + res.message, 'danger', 5000);
+                } else {
+                    alert('Gagal: ' + res.message);
+                }
                 btn.innerText = 'Mulai Eksekusi Import';
                 btn.removeAttribute('disabled');
             }
         })
         .catch(err => {
-            alert('Terjadi kesalahan koneksi sistem jaringan.');
+            if (window.finnovaToast) {
+                window.finnovaToast('Terjadi kesalahan koneksi sistem jaringan.', 'danger', 5000);
+            } else {
+                alert('Terjadi kesalahan koneksi sistem jaringan.');
+            }
             btn.innerText = 'Mulai Eksekusi Import';
             btn.removeAttribute('disabled');
         });
@@ -335,17 +360,17 @@
 
     function downloadTemplate() {
         // Kolom disesuaikan dengan struktur Anti-Rugi Manajemen Harga
-        const header = [["Kode Barang", "Nama Barang", "Kategori", "Satuan", "Status", "Stok Tersedia", "Stok Minimum", "Harga Modal", "Harga Minimum", "Harga Jual"]];
+        const header = [["Kode Barang", "Nama Barang", "Kategori", "Satuan", "Status", "Stok Tersedia", "Stok Minimum", "Harga Modal", "Harga Minimum", "Harga Jual", "Diskon"]];
         const contohData = [
-            ["BRG-001", "Busi Denso Iridium Premium", "Elektronik", "Pcs", "aktif", 50, 10, 50000, 55000, 75000],
-            ["BRG-002", "Oli Motor Shell Helix 4L", "Pelumas", "Botol", "aktif", 120, 20, 300000, 320000, 350000]
+            ["BRG-001", "Busi Denso Iridium Premium", "Elektronik", "Pcs", "aktif", 50, 10, 50000, 55000, 75000, 0],
+            ["BRG-002", "Oli Motor Shell Helix 4L", "Pelumas", "Botol", "aktif", 120, 20, 300000, 320000, 350000, 5000]
         ];
         
         const worksheet = XLSX.utils.aoa_to_sheet(header.concat(contohData));
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template Barang Stok Harga");
         
-        XLSX.writeFile(workbook, "Template_Import_Barang_Cerdas.xlsx");
+        XLSX.writeFile(workbook, "Template_Import_Barang_VxPOS.xlsx");
     }
 </script>
 @endsection

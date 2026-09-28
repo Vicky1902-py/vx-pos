@@ -28,7 +28,7 @@ class SuperAdminController extends Controller
                 ->when($hasTransaksiToko && $tokoId, function ($q) use ($tokoId) {
                     $q->where('toko_id', $tokoId);
                 })
-                ->where('status', 'selesai')
+                ->where('status', '!=', 'batal')
                 ->whereMonth('created_at', $bulanIni)
                 ->whereYear('created_at', $tahunIni)
                 ->sum('total_transaksi');
@@ -41,7 +41,7 @@ class SuperAdminController extends Controller
                 ->when($hasTransaksiToko && $tokoId, function ($q) use ($tokoId) {
                     $q->where('toko_id', $tokoId);
                 })
-                ->where('status', 'selesai')
+                ->where('status', '!=', 'batal')
                 ->whereMonth('created_at', $bulanIni)
                 ->whereYear('created_at', $tahunIni)
                 ->count();
@@ -102,7 +102,7 @@ class SuperAdminController extends Controller
                     ->when($hasTransaksiToko && $tokoId, function ($q) use ($tokoId) {
                         $q->where('toko_id', $tokoId);
                     })
-                    ->where('status', 'selesai')
+                    ->where('status', '!=', 'batal')
                     ->whereDate('created_at', $date->format('Y-m-d'))
                     ->sum('total_transaksi');
             }
@@ -119,7 +119,7 @@ class SuperAdminController extends Controller
                 ->when($hasTransaksiToko && $tokoId, function ($q) use ($tokoId) {
                     $q->where('transaksi.toko_id', $tokoId);
                 })
-                ->where('transaksi.status', 'selesai')
+                ->where('transaksi.status', '!=', 'batal')
                 ->whereMonth('transaksi.created_at', $bulanIni)
                 ->whereYear('transaksi.created_at', $tahunIni)
                 ->select('barang.nama_barang', 'barang.kategori', DB::raw('SUM(detail_transaksi.jumlah) as total_terjual'))
@@ -152,6 +152,13 @@ class SuperAdminController extends Controller
                     ->get();
             }
         }
+
+        $totalOmzet = (float) ($totalOmzet ?? 0);
+        $penjualanSales = (int) ($penjualanSales ?? 0);
+        $stokRendah = (int) ($stokRendah ?? 0);
+        $bonusBulanIni = (float) ($bonusBulanIni ?? 0);
+        $kasTerbayar = (float) ($kasTerbayar ?? 0);
+        $kasPiutang = (float) ($kasPiutang ?? 0);
 
         $isPlatformAdmin = TenantManager::isPlatformAdmin();
         $isAssistMode = TenantManager::isAssistMode();

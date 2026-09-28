@@ -53,6 +53,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/return-master', [\App\Http\Controllers\PlatformController::class, 'returnMaster'])->name('platform.return');
         Route::get('/system/repair-db', [\App\Http\Controllers\PlatformController::class, 'repairDatabase'])->name('platform.repair_db');
         Route::match(['get', 'post'], '/demo/generate', [\App\Http\Controllers\PlatformController::class, 'generateDemo'])->name('platform.demo.generate');
+        Route::get('/traffic/data', [\App\Http\Controllers\PlatformController::class, 'liveTrafficData'])->name('platform.traffic.data');
+        Route::post('/traffic/kick/{id}', [\App\Http\Controllers\PlatformController::class, 'kickUserSession'])->name('platform.traffic.kick');
+        Route::post('/landing-settings', [\App\Http\Controllers\PlatformController::class, 'updateLandingSettings'])->name('platform.landing.update');
     });
 
     // --- AREA SUPER ADMIN & MANAJEMEN TOKO ---
@@ -137,11 +140,14 @@ Route::middleware('auth')->group(function () {
             // Penggajian / Payroll
             Route::get('/gaji', [GajiController::class, 'index'])->name('superadmin.gaji.index');
             Route::post('/gaji', [GajiController::class, 'store'])->name('superadmin.gaji.store');
+            Route::post('/gaji/standar', [GajiController::class, 'updateGajiStandar'])->name('superadmin.gaji.standar');
             Route::get('/gaji/slip/{id}', [GajiController::class, 'cetakSlip'])->name('superadmin.gaji.cetak');
             
-            // Backup Database
+            // Backup & Restore Database / Snapshot Toko (Protect ID)
             Route::get('/backup', [BackupController::class, 'index'])->name('superadmin.backup.index');
-            Route::post('/backup/download', [BackupController::class, 'download'])->name('superadmin.backup.download');
+            Route::post('/backup/download', [BackupController::class, 'downloadStoreBackup'])->name('superadmin.backup.download');
+            Route::post('/backup/restore', [BackupController::class, 'restoreStoreBackup'])->name('superadmin.backup.restore');
+            Route::post('/backup/global-sql', [BackupController::class, 'downloadGlobalSql'])->name('superadmin.backup.global');
             
             // Manajemen Multi-Toko (Super Admin Platform)
             Route::get('/toko', [\App\Http\Controllers\TokoController::class, 'index'])->name('superadmin.toko.index');

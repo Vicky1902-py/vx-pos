@@ -16,16 +16,18 @@
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
 
-# Blokir akses langsung ke file sensitif (KEAMANAN)
-<Files .env>
-    Order allow,deny
-    Deny from all
-</Files>
-<Files artisan>
-    Order allow,deny
-    Deny from all
-</Files>
-<Files composer.json>
-    Order allow,deny
-    Deny from all
-</Files>
+# Blokir akses langsung ke file sensitif, database dump, config, log (KEAMANAN TINGGI)
+<FilesMatch "(\.env|\.sql|\.log|\.yml|\.yaml|\.json|\.lock|artisan|phpunit)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Blokir seluruh file/folder tersembunyi (diawali titik), kecuali .well-known untuk sertifikat SSL
+<IfModule mod_rewrite.c>
+    RewriteRule "(^|/)\.(?!well-known)" - [F]
+</IfModule>

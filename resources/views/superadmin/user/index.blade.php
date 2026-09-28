@@ -66,13 +66,15 @@
                     </td>
                     <td class="py-4 px-6 text-center">
                         @if($item->role == 'superadmin')
-                            <span class="bg-[#7367f0]/10 text-[#7367f0] px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-chess-king mr-1"></i> Super Admin</span>
-                        @elseif(in_array($item->role, ['kasir', 'admin']))
-                            <span class="bg-[#28c76f]/10 text-[#28c76f] px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-desktop mr-1"></i> Kasir</span>
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-chess-king mr-1"></i> Super Admin</span>
+                        @elseif($item->role == 'admin')
+                            <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-user-tie mr-1"></i> Admin Toko</span>
+                        @elseif($item->role == 'kasir')
+                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-desktop mr-1"></i> Kasir</span>
                         @elseif($item->role == 'sales')
-                            <span class="bg-[#00cfe8]/10 text-[#00cfe8] px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-briefcase mr-1"></i> Sales</span>
+                            <span class="bg-cyan-100 text-cyan-700 px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-briefcase mr-1"></i> Sales</span>
                         @else
-                            <span class="bg-[#ff9f43]/10 text-[#ff9f43] px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-boxes-stacked mr-1"></i> Gudang</span>
+                            <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-xs font-bold uppercase"><i class="fa-solid fa-boxes-stacked mr-1"></i> Gudang</span>
                         @endif
                     </td>
                     <td class="py-4 px-6 text-center">
@@ -86,9 +88,9 @@
                         <div class="flex items-center justify-center gap-3">
                             <button onclick="openEditModal({{ json_encode($item) }})" class="text-amber-500 hover:text-amber-600 transition-colors" title="Edit Data & Hak Akses"><i class="fa-regular fa-pen-to-square text-lg"></i></button>
                             @if(auth()->id() != $item->id)
-                            <form action="{{ route('superadmin.user.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus akun ini secara permanen?');" class="inline">
+                            <form action="{{ route('superadmin.user.destroy', $item->id) }}" method="POST" data-confirm="Hapus akun ini secara permanen?" data-confirm-type="danger" data-confirm-title="Hapus Akun Pengguna" data-confirm-btn="Ya, Hapus" class="inline">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-500 transition-colors" title="Hapus Akun"><i class="fa-regular fa-trash-can text-lg"></i></button>
+                                <button type="submit" class="text-red-400 hover:text-red-500 transition-colors cursor-pointer" title="Hapus Akun"><i class="fa-regular fa-trash-can text-lg"></i></button>
                             </form>
                             @endif
                         </div>
@@ -133,10 +135,11 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-sm font-semibold text-gray-600 mb-1">Jabatan (Role)</label>
-                            <select id="role" name="role" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7367f0]">
-                                <option value="sales">Sales</option>
+                            <select id="role" name="role" required onchange="applyDefaultRolePermissions(this.value)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7367f0]">
+                                <option value="admin">Admin Toko</option>
                                 <option value="kasir">Kasir</option>
                                 <option value="gudang">Gudang</option>
+                                <option value="sales">Sales</option>
                                 @if(\App\Services\TenantManager::isPlatformAdmin())
                                 <option value="superadmin">Super Admin</option>
                                 @endif
@@ -149,6 +152,11 @@
                                 <option value="nonaktif">Nonaktif</option>
                             </select>
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Gaji Pokok Standar (Rp)</label>
+                        <input type="number" id="gaji_pokok" name="gaji_pokok" min="0" value="0" placeholder="Contoh: 1500000" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7367f0] font-semibold text-gray-800">
+                        <p class="text-[11px] text-gray-400 mt-1">Otomatis dimuat saat memproses slip gaji bulanan karyawan ini.</p>
                     </div>
                 </div>
 
@@ -220,13 +228,32 @@
         document.querySelectorAll('input[name="hak_akses[]"]').forEach(cb => cb.checked = false);
     }
 
+    function applyDefaultRolePermissions(role) {
+        resetCheckboxes();
+        const defaults = {
+            'admin': ['master_barang', 'manajemen_harga', 'transaksi_sales', 'validasi_kasir', 'stok_gudang', 'laporan_penjualan', 'kelola_bonus', 'manajemen_user'],
+            'superadmin': ['master_barang', 'manajemen_harga', 'transaksi_sales', 'validasi_kasir', 'stok_gudang', 'laporan_penjualan', 'kelola_bonus', 'manajemen_user'],
+            'kasir': ['transaksi_sales', 'validasi_kasir'],
+            'gudang': ['master_barang', 'stok_gudang'],
+            'sales': ['transaksi_sales', 'kelola_bonus']
+        };
+        if (defaults[role]) {
+            defaults[role].forEach(val => {
+                const cb = document.querySelector(`input[name="hak_akses[]"][value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+    }
+
     function openAddModal() {
         document.getElementById('modalTitle').innerText = 'Tambah Akun Pegawai';
         document.getElementById('formUser').action = "{{ route('superadmin.user.store') }}";
         document.getElementById('methodField').value = "POST";
         document.getElementById('formUser').reset();
         document.getElementById('password').required = true;
-        resetCheckboxes();
+        document.getElementById('role').value = 'kasir';
+        document.getElementById('gaji_pokok').value = '0';
+        applyDefaultRolePermissions('kasir');
         toggleModal('modalUser');
     }
 
@@ -239,6 +266,7 @@
         document.getElementById('username').value = item.username;
         document.getElementById('role').value = item.role;
         document.getElementById('status').value = item.status;
+        document.getElementById('gaji_pokok').value = item.gaji_pokok || 0;
         
         document.getElementById('password').required = false;
         document.getElementById('password').value = '';
@@ -246,14 +274,22 @@
         resetCheckboxes();
 
         // Mengembalikan centang dari database
+        let hasCustomAkses = false;
         if (item.hak_akses) {
             try {
                 const aksesArray = JSON.parse(item.hak_akses);
-                aksesArray.forEach(val => {
-                    const cb = document.querySelector(`input[name="hak_akses[]"][value="${val}"]`);
-                    if (cb) cb.checked = true;
-                });
+                if (Array.isArray(aksesArray) && aksesArray.length > 0) {
+                    hasCustomAkses = true;
+                    aksesArray.forEach(val => {
+                        const cb = document.querySelector(`input[name="hak_akses[]"][value="${val}"]`);
+                        if (cb) cb.checked = true;
+                    });
+                }
             } catch (e) { console.error("Error parsing hak_akses JSON"); }
+        }
+
+        if (!hasCustomAkses) {
+            applyDefaultRolePermissions(item.role);
         }
         
         toggleModal('modalUser');

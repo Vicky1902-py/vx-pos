@@ -68,9 +68,9 @@
                     <td class="py-4 px-6 text-center align-top">
                         @if($item->status == 'menunggu')
                             <span class="bg-amber-100 text-amber-600 px-3 py-1 rounded-md text-xs font-bold uppercase block mb-3 w-fit mx-auto">Menunggu Disiapkan</span>
-                            <form action="{{ route('superadmin.gudang.proses', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin barang sudah selesai di-packing? Stok fisik akan langsung dipotong setelah Anda mengeklik OK.');">
+                            <form action="{{ route('superadmin.gudang.proses', $item->id) }}" method="POST" data-confirm="Apakah Anda yakin barang sudah selesai di-packing? Stok fisik akan langsung dipotong dari gudang." data-confirm-type="success" data-confirm-title="Konfirmasi Packing Selesai" data-confirm-btn="Ya, Siapkan Barang">
                                 @csrf
-                                <button type="submit" class="bg-[#28c76f] hover:bg-[#23af61] text-white text-sm font-bold py-2.5 px-4 rounded-lg shadow-[0_2px_6px_rgba(40,199,111,0.4)] transition-all w-full flex items-center justify-center gap-2">
+                                <button type="submit" class="bg-[#28c76f] hover:bg-[#23af61] text-white text-sm font-bold py-2.5 px-4 rounded-lg shadow-[0_2px_6px_rgba(40,199,111,0.4)] transition-all w-full flex items-center justify-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-box-open"></i> Siapkan Barang
                                 </button>
                             </form>

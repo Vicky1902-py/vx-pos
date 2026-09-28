@@ -38,6 +38,9 @@
 <body>
     <div class="container">
         <div class="header">
+            @if($logoPath)
+                <img src="{{ $logoPath }}" alt="{{ $namaToko }}" style="max-height: 50px; margin-bottom: 8px;"><br>
+            @endif
             <h2>{{ $namaToko }}</h2>
             <p>{{ $alamatToko }}</p>
             <p>Telp: {{ $telpToko }}</p>
@@ -77,7 +80,7 @@
                 <td>Insentif / Bonus Pencairan</td>
                 <td class="val">Rp {{ number_format($gaji->bonus, 0, ',', '.') }}</td>
             </tr>
-            @php $totalPendapatan = $gaji->gaji_pokok + $gaji->tunjangan + $gaji->bonus; @endphp
+            @php $totalPendapatan = (float)($gaji->gaji_pokok ?? 0) + (float)($gaji->tunjangan ?? 0) + (float)($gaji->bonus ?? 0); @endphp
             <tr>
                 <td style="padding-left: 20px; font-style: italic;">Subtotal Pendapatan</td>
                 <td class="val" style="font-weight:bold;">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</td>

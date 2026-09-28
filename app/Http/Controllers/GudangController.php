@@ -50,16 +50,20 @@ class GudangController extends Controller
         return view('superadmin.gudang.index', compact('permintaan'));
     }
 
-    // Aksi validasi: Gudang selesai menyiapkan barang -> Potong Stok
     public function proses($id)
     {
+        $tokoId = TenantManager::getTokoId();
         DB::beginTransaction();
         try {
             // Kunci baris data agar tidak terjadi bentrok saat diklik ganda (Race Condition)
-            $permintaan = DB::table('permintaan_gudang')->where('id', $id)->lockForUpdate()->first();
+            $query = DB::table('permintaan_gudang')->where('id', $id);
+            if (!TenantManager::isPlatformAdmin()) {
+                $query->where('toko_id', $tokoId);
+            }
+            $permintaan = $query->lockForUpdate()->first();
             
             if (!$permintaan || $permintaan->status == 'disiapkan') {
-                return redirect()->back()->withErrors('Permintaan tidak valid atau sudah diproses sebelumnya.');
+                return redirect()->back()->withErrors('Permintaan tidak valid, bukan milik toko Anda, atau sudah diproses sebelumnya.');
             }
 
             $detailTransaksi = DB::table('detail_transaksi')->where('transaksi_id', $permintaan->transaksi_id)->get();
@@ -77,25 +81,34 @@ class GudangController extends Controller
                 $statusWarning = ($sisaStok <= $stok->stok_minimum) ? 'warning' : 'aman';
 
                 // Eksekusi potong stok dan update peringatan
-                DB::table('stok')->where('barang_id', $dt->barang_id)->update([
+                $stokCols = \Illuminate\Support\Facades\Schema::getColumnListing('stok');
+                $updateStok = [
                     'stok_tersedia'  => $sisaStok,
-                    'status_warning' => $statusWarning,
-                    'updated_at'     => now()
-                ]);
+                ];
+                if (in_array('status_warning', $stokCols)) $updateStok['status_warning'] = $statusWarning;
+                if (in_array('updated_at', $stokCols)) $updateStok['updated_at'] = now();
+
+                DB::table('stok')->where('barang_id', $dt->barang_id)->update($updateStok);
             }
 
             // Update status di tabel permintaan_gudang
-            DB::table('permintaan_gudang')->where('id', $id)->update([
-                'status'          => 'disiapkan',
-                'diperbarui_oleh' => Auth::id(), // Siapa petugas gudang/admin yang menyetujui
-                'updated_at'      => now()
-            ]);
+            $gudangCols = \Illuminate\Support\Facades\Schema::getColumnListing('permintaan_gudang');
+            $updatePermintaan = [
+                'status' => 'disiapkan',
+            ];
+            if (in_array('diperbarui_oleh', $gudangCols)) $updatePermintaan['diperbarui_oleh'] = Auth::id();
+            if (in_array('updated_at', $gudangCols)) $updatePermintaan['updated_at'] = now();
+
+            DB::table('permintaan_gudang')->where('id', $id)->update($updatePermintaan);
 
             // PENTING: Update status induk transaksi agar Kasir tahu barang sudah siap
-            DB::table('transaksi')->where('id', $permintaan->transaksi_id)->update([
-                'status'     => 'disiapkan_gudang',
-                'updated_at' => now()
-            ]);
+            $txCols = \Illuminate\Support\Facades\Schema::getColumnListing('transaksi');
+            $updateTx = [
+                'status' => 'disiapkan_gudang',
+            ];
+            if (in_array('updated_at', $txCols)) $updateTx['updated_at'] = now();
+
+            DB::table('transaksi')->where('id', $permintaan->transaksi_id)->update($updateTx);
 
             DB::commit();
             return redirect()->back()->with('success', 'Berhasil! Barang telah disiapkan dan stok gudang otomatis dikurangi.');

@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'akses' => \App\Http\Middleware\AksesModul::class,
         ]);
+
+        // Pantau live traffic seluruh aktivitas user (kecuali superadmin)
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackLiveTraffic::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

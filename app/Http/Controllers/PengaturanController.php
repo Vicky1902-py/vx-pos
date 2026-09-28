@@ -38,6 +38,11 @@ class PengaturanController extends Controller
 
     public function update(Request $request)
     {
+        $user = auth()->user();
+        if ($user && ($user->username === 'demo' || $user->username === 'kasir_demo' || $user->toko_id == 30)) {
+            return redirect()->back()->with('error', 'Akses Ditolak: Akun demo hanya memiliki hak akses melihat profil, perubahan dinonaktifkan.');
+        }
+
         $tokoId = TenantManager::getTokoId();
 
         $request->validate([
@@ -46,6 +51,11 @@ class PengaturanController extends Controller
         ]);
 
         $data = $request->except(['_token', 'logo']);
+        foreach ($data as $k => $v) {
+            if (is_string($v)) {
+                $data[$k] = strip_tags($v);
+            }
+        }
         $ptCols = Schema::getColumnListing('pengaturan_toko');
 
         if (in_array('updated_at', $ptCols)) {

@@ -90,9 +90,9 @@
                                 <i class="fa-solid fa-print text-lg"></i>
                             </a>
                             <!-- Tombol Hapus -->
-                            <form action="{{ route('superadmin.transaksi.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini? Stok tidak akan dikembalikan secara otomatis.');" class="inline">
+                            <form action="{{ route('superadmin.transaksi.destroy', $item->id) }}" method="POST" data-confirm="Apakah Anda yakin ingin menghapus transaksi ini? Stok tidak akan dikembalikan secara otomatis." data-confirm-type="danger" data-confirm-title="Hapus Transaksi" data-confirm-btn="Ya, Hapus" class="inline">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-500 transition-colors" title="Hapus Transaksi"><i class="fa-regular fa-trash-can text-lg"></i></button>
+                                <button type="submit" class="text-red-400 hover:text-red-500 transition-colors cursor-pointer" title="Hapus Transaksi"><i class="fa-regular fa-trash-can text-lg"></i></button>
                             </form>
                         </div>
                     </td>

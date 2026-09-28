@@ -25,3 +25,7 @@ yarn-error.log
 *.tar.gz
 database/*.sqlite
 database/*.sqlite-journal
+*.sql
+*.log
+error_log
+vxai-app/

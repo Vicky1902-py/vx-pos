@@ -84,14 +84,14 @@
             <tbody class="text-sm text-[#4b465c]">
                 @forelse($riwayatBonus as $riwayat)
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td class="p-4">{{ \Carbon\Carbon::parse($riwayat->created_at)->format('d M Y - H:i') }}</td>
+                    <td class="p-4">{{ !empty($riwayat->created_at) ? \Carbon\Carbon::parse($riwayat->created_at)->format('d M Y - H:i') : ($riwayat->periode ?? '-') }}</td>
                     <td class="p-4 font-bold">{{ strtoupper($riwayat->nama_sales ?? 'Terhapus') }}</td>
                     <td class="p-4">{{ $riwayat->keterangan }}</td>
                     <td class="p-4 text-right font-bold text-emerald-600">Rp {{ number_format($riwayat->total_bonus, 0, ',', '.') }}</td>
                     <td class="p-4 text-center">
-                        <form action="{{ route('superadmin.bonus.destroy', $riwayat->id) }}" method="POST" onsubmit="return confirm('Batalkan riwayat pencairan ini?');">
+                        <form action="{{ route('superadmin.bonus.destroy', $riwayat->id) }}" method="POST" data-confirm="Batalkan riwayat pencairan bonus ini?" data-confirm-type="danger" data-confirm-title="Batalkan Pencairan Bonus" data-confirm-btn="Ya, Batalkan">
                             @csrf @method('DELETE')
-                            <button type="submit" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>
+                            <button type="submit" class="text-red-400 hover:text-red-600 cursor-pointer"><i class="fa-solid fa-trash-can"></i></button>
                         </form>
                     </td>
                 </tr>

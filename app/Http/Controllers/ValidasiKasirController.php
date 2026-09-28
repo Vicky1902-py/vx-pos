@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Services\TenantManager;
 
 class ValidasiKasirController extends Controller
@@ -37,30 +38,47 @@ class ValidasiKasirController extends Controller
 
         DB::beginTransaction();
         try {
-            $transaksi = DB::table('transaksi')->where('id', $id)->where('toko_id', $tokoId)->first();
+            $query = DB::table('transaksi')->where('id', $id);
+            if (!TenantManager::isPlatformAdmin()) {
+                $query->where('toko_id', $tokoId);
+            }
+            $transaksi = $query->first();
             
-            if ($transaksi) {
-                $sisaPelunasan = (float) $transaksi->piutang;
+            if (!$transaksi) {
+                return redirect()->back()->withErrors('Transaksi tidak ditemukan atau bukan milik toko Anda.');
+            }
 
-                DB::table('transaksi')->where('id', $id)->where('toko_id', $tokoId)->update([
-                    'status'     => 'selesai',
-                    'dp'         => $transaksi->total_transaksi,
-                    'piutang'    => 0,
-                    'updated_at' => now(),
-                ]);
+            $sisaPelunasan = (float) $transaksi->piutang;
 
-                // Rekam pencatatan pelunasan di riwayat cicilan jika ada sisa piutang
-                if ($sisaPelunasan > 0) {
-                    DB::table('riwayat_cicilan')->insert([
-                        'toko_id'       => $tokoId,
-                        'transaksi_id'  => $id,
-                        'nominal_bayar' => $sisaPelunasan,
-                        'keterangan'    => 'Pelunasan Akhir Kasir',
-                        'tanggal_bayar' => now(),
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
-                    ]);
+            DB::table('transaksi')->where('id', $id)->update([
+                'status'     => 'selesai',
+                'dp'         => $transaksi->total_transaksi,
+                'piutang'    => 0,
+                'updated_at' => now(),
+            ]);
+
+            // Rekam pencatatan pelunasan di riwayat cicilan jika ada sisa piutang
+            if ($sisaPelunasan > 0 && Schema::hasTable('riwayat_cicilan')) {
+                // Self-healing: Pastikan kolom created_at dan updated_at ada
+                if (!Schema::hasColumn('riwayat_cicilan', 'created_at')) {
+                    try { DB::statement("ALTER TABLE `riwayat_cicilan` ADD COLUMN `created_at` TIMESTAMP NULL DEFAULT NULL"); } catch (\Throwable $e) {}
                 }
+                if (!Schema::hasColumn('riwayat_cicilan', 'updated_at')) {
+                    try { DB::statement("ALTER TABLE `riwayat_cicilan` ADD COLUMN `updated_at` TIMESTAMP NULL DEFAULT NULL"); } catch (\Throwable $e) {}
+                }
+
+                $cols = Schema::getColumnListing('riwayat_cicilan');
+                $data = [
+                    'transaksi_id'  => $id,
+                    'nominal_bayar' => $sisaPelunasan,
+                    'keterangan'    => 'Pelunasan Akhir Kasir',
+                ];
+                if (in_array('toko_id', $cols)) $data['toko_id'] = $transaksi->toko_id ?? $tokoId;
+                if (in_array('tanggal_bayar', $cols)) $data['tanggal_bayar'] = now();
+                if (in_array('created_at', $cols)) $data['created_at'] = now();
+                if (in_array('updated_at', $cols)) $data['updated_at'] = now();
+
+                DB::table('riwayat_cicilan')->insert($data);
             }
 
             DB::commit();
@@ -77,14 +95,18 @@ class ValidasiKasirController extends Controller
     {
         $tokoId = TenantManager::getTokoId();
 
-        $transaksi = DB::table('transaksi')
+        $query = DB::table('transaksi')
             ->leftJoin('users as sales', 'transaksi.sales_id', '=', 'sales.id')
             ->select('transaksi.*', 'sales.nama as nama_sales')
-            ->where('transaksi.id', $id)
-            ->where('transaksi.toko_id', $tokoId)
-            ->first();
+            ->where('transaksi.id', $id);
 
-        if (!$transaksi) return abort(404, 'Transaksi tidak ditemukan');
+        if (!TenantManager::isPlatformAdmin()) {
+            $query->where('transaksi.toko_id', $tokoId);
+        }
+
+        $transaksi = $query->first();
+
+        if (!$transaksi) return abort(404, 'Transaksi tidak ditemukan atau bukan milik toko Anda.');
 
         // Ambil data barang beserta field 'satuan'
         $detail = DB::table('detail_transaksi')
@@ -93,8 +115,14 @@ class ValidasiKasirController extends Controller
             ->where('transaksi_id', $id)
             ->get();
 
+        $riwayatCicilan = DB::table('riwayat_cicilan')
+            ->where('transaksi_id', $id)
+            ->orderBy('tanggal_bayar', 'asc')
+            ->get();
+
+        $notaTokoId = $transaksi->toko_id ?? $tokoId;
         // Ambil pengaturan toko khusus toko aktif (fallback ke baris pertama jika belum diset)
-        $pengaturan = DB::table('pengaturan_toko')->where('toko_id', $tokoId)->first() 
+        $pengaturan = DB::table('pengaturan_toko')->where('toko_id', $notaTokoId)->first() 
             ?? DB::table('pengaturan_toko')->first();
 
         // Fungsi internal untuk mengubah angka menjadi teks (Terbilang)
@@ -116,6 +144,6 @@ class ValidasiKasirController extends Controller
         // Buat string terbilang (contoh: "Satu Juta Dua Ratus Lima Puluh Ribu Rupiah")
         $teksTerbilang = trim($terbilang($transaksi->total_transaksi)) . " Rupiah";
 
-        return view('superadmin.kasir.nota', compact('transaksi', 'detail', 'pengaturan', 'teksTerbilang'));
+        return view('superadmin.kasir.nota', compact('transaksi', 'detail', 'riwayatCicilan', 'pengaturan', 'teksTerbilang'));
     }
 }

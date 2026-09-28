@@ -28,6 +28,7 @@ class User extends Authenticatable
         'is_platform_admin',
         'status',
         'hak_akses',
+        'gaji_pokok',
     ];
 
     /**

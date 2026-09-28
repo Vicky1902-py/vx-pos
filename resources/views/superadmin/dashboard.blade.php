@@ -316,10 +316,10 @@
                 </div>
 
                 <div class="text-right">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $trx->status === 'selesai' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300' }}">
-                        {{ strtoupper($trx->status) }}
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ ($trx->status ?? '') === 'selesai' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300' }}">
+                        {{ strtoupper($trx->status ?? 'SELESAI') }}
                     </span>
-                    <p class="text-xs font-bold text-white mt-1">Rp {{ number_format($trx->total_transaksi, 0, ',', '.') }}</p>
+                    <p class="text-xs font-bold text-white mt-1">Rp {{ number_format($trx->total_transaksi ?? 0, 0, ',', '.') }}</p>
                 </div>
             </div>
             @empty
@@ -380,19 +380,19 @@
                     @forelse($featuredItems as $item)
                     <div class="bg-white/10 hover:bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/10 transition-all flex flex-col justify-between">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-base font-black text-white">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                            <span class="text-base font-black text-white">Rp {{ number_format($item->subtotal ?? 0, 0, ',', '.') }}</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-200"></i>
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-white line-clamp-1">{{ $item->nama_barang }}</p>
-                            <p class="text-[10px] text-indigo-200">{{ $item->jumlah }} Pcs &bull; {{ $item->kategori ?? 'Umum' }}</p>
+                            <p class="text-xs font-bold text-white line-clamp-1">{{ $item->nama_barang ?? 'Produk' }}</p>
+                            <p class="text-[10px] text-indigo-200">{{ $item->jumlah ?? 1 }} Pcs &bull; {{ $item->kategori ?? 'Umum' }}</p>
                         </div>
                     </div>
                     @empty
                     <!-- Sample Finnova Presentation Tiles if no items yet -->
                     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex flex-col justify-between">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-base font-black text-white">Rp {{ number_format($totalOmzet > 0 ? $totalOmzet * 0.4 : 150000, 0, ',', '.') }}</span>
+                            <span class="text-base font-black text-white">Rp {{ number_format(($totalOmzet ?? 0) > 0 ? ($totalOmzet * 0.4) : 150000, 0, ',', '.') }}</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-200"></i>
                         </div>
                         <div>
@@ -403,7 +403,7 @@
 
                     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex flex-col justify-between">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-base font-black text-white">Rp {{ number_format($totalOmzet > 0 ? $totalOmzet * 0.35 : 85000, 0, ',', '.') }}</span>
+                            <span class="text-base font-black text-white">Rp {{ number_format(($totalOmzet ?? 0) > 0 ? ($totalOmzet * 0.35) : 85000, 0, ',', '.') }}</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-200"></i>
                         </div>
                         <div>
@@ -429,19 +429,19 @@
                         <div>
                             <p class="text-[10px] font-bold text-indigo-200 uppercase">Sub Total</p>
                             <p class="text-sm font-extrabold text-white">
-                                Rp {{ number_format($featuredInvoice->total_transaksi ?? $totalOmzet, 0, ',', '.') }}
+                                Rp {{ number_format($featuredInvoice->total_transaksi ?? $totalOmzet ?? 0, 0, ',', '.') }}
                             </p>
                         </div>
                         <div>
                             <p class="text-[10px] font-bold text-indigo-200 uppercase">Uang Masuk (DP)</p>
                             <p class="text-sm font-extrabold text-emerald-300">
-                                Rp {{ number_format($featuredInvoice->dp ?? $kasTerbayar, 0, ',', '.') }}
+                                Rp {{ number_format($featuredInvoice->dp ?? $kasTerbayar ?? 0, 0, ',', '.') }}
                             </p>
                         </div>
                         <div>
                             <p class="text-[10px] font-bold text-indigo-200 uppercase">Sisa Tagihan</p>
                             <p class="text-sm font-extrabold text-rose-300">
-                                Rp {{ number_format($featuredInvoice->piutang ?? $kasPiutang, 0, ',', '.') }}
+                                Rp {{ number_format($featuredInvoice->piutang ?? $kasPiutang ?? 0, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -505,11 +505,11 @@
         <div class="grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
             <div class="p-3 bg-emerald-50/60 rounded-2xl">
                 <p class="text-[10px] text-emerald-700 font-extrabold uppercase mb-0.5">Uang Masuk</p>
-                <p class="text-sm font-black text-emerald-600">Rp {{ number_format($kasTerbayar, 0, ',', '.') }}</p>
+                <p class="text-sm font-black text-emerald-600">Rp {{ number_format($kasTerbayar ?? 0, 0, ',', '.') }}</p>
             </div>
             <div class="p-3 bg-rose-50/60 rounded-2xl text-right">
                 <p class="text-[10px] text-rose-700 font-extrabold uppercase mb-0.5">Total Piutang</p>
-                <p class="text-sm font-black text-rose-600">Rp {{ number_format($kasPiutang, 0, ',', '.') }}</p>
+                <p class="text-sm font-black text-rose-600">Rp {{ number_format($kasPiutang ?? 0, 0, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -540,12 +540,12 @@
                         #{{ $index + 1 }}
                     </div>
                     <div>
-                        <h6 class="text-xs font-extrabold text-slate-800 leading-tight">{{ $produk->nama_barang }}</h6>
-                        <p class="text-[10px] text-slate-400 font-medium">{{ $produk->kategori }}</p>
+                        <h6 class="text-xs font-extrabold text-slate-800 leading-tight">{{ $produk->nama_barang ?? 'Barang' }}</h6>
+                        <p class="text-[10px] text-slate-400 font-medium">{{ $produk->kategori ?? 'Umum' }}</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <span class="text-xs font-black text-slate-800">{{ number_format($produk->total_terjual, 0, ',', '.') }}</span>
+                    <span class="text-xs font-black text-slate-800">{{ number_format($produk->total_terjual ?? 0, 0, ',', '.') }}</span>
                     <span class="text-[10px] text-slate-400 block font-medium">Terjual</span>
                 </div>
             </div>
@@ -681,8 +681,8 @@
     // ----------------------------------------------------
     // 2. Grafik Donat Arus Kas
     // ----------------------------------------------------
-    var kasTerbayar = {{ (int) $kasTerbayar }};
-    var kasPiutang = {{ (int) $kasPiutang }};
+    var kasTerbayar = {{ (int) ($kasTerbayar ?? 0) }};
+    var kasPiutang = {{ (int) ($kasPiutang ?? 0) }};
     
     if(kasTerbayar === 0 && kasPiutang === 0) {
         kasTerbayar = 1; 

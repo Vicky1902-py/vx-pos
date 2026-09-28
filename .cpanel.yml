@@ -1,7 +1,7 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=${DEPLOYPATH:-$HOME/public_html}
+    - export DEPLOYPATH=${DEPLOYPATH:-$([ -d "$HOME/public_html/erp.vxai.online" ] && echo "$HOME/public_html/erp.vxai.online" || echo "$HOME/public_html")}
     - /bin/cp -rf * $DEPLOYPATH/
     - /bin/cp -rf .htaccess $DEPLOYPATH/
     - /bin/chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache

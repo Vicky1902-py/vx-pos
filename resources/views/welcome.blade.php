@@ -164,6 +164,7 @@
                 <a href="#keunggulan" class="hover:text-brand-600 transition-colors">Sistem Anti-Rugi</a>
                 <a href="#pricing" class="hover:text-brand-600 transition-colors">Paket Harga</a>
                 <a href="#konsultasi" class="hover:text-brand-600 transition-colors">Konsultasi</a>
+                <a href="#testimoni" class="hover:text-brand-600 transition-colors">Testimoni</a>
                 <a href="#faq" class="hover:text-brand-600 transition-colors">FAQ</a>
             </nav>
 
@@ -184,8 +185,11 @@
     <!-- Hero Section -->
     <section class="relative pt-36 pb-20 md:pt-44 md:pb-32 hero-glow overflow-hidden">
         <!-- Interactive Motion Graphic Canvas -->
-        <canvas id="motionCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-30"></canvas>
+        <canvas id="motionCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-50"></canvas>
         <div id="cursorGlow" class="cursor-ambient-glow hidden md:block opacity-0"></div>
+        <!-- Floating Gradient Orbs -->
+        <div class="absolute top-20 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-400/20 to-purple-500/10 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
+        <div class="absolute bottom-10 -right-24 w-80 h-80 bg-gradient-to-tr from-pink-400/15 to-amber-400/10 rounded-full blur-3xl animate-float-reverse pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <!-- Badge -->
@@ -346,42 +350,58 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all interactive-card reveal-on-scroll">
-                    <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-shield-halved"></i>
+                <div class="group p-8 rounded-2xl bg-white border border-slate-100 hover:border-brand-200 hover:shadow-2xl hover:shadow-brand-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-brand-500/5 rounded-full group-hover:bg-brand-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-brand-500/25 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-3">Isolasi Data Aman</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Data produk, stok, transaksi kasir, dan laporan keuangan toko A tidak akan pernah bercampur dengan toko B berkat pembatasan level database otomatis.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Isolasi Data Aman</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Data produk, stok, transaksi kasir, dan laporan keuangan toko A tidak akan pernah bercampur dengan toko B berkat pembatasan level database otomatis.
-                    </p>
                 </div>
 
-                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all interactive-card reveal-on-scroll">
-                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-users-gear"></i>
+                <div class="group p-8 rounded-2xl bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/5 rounded-full group-hover:bg-indigo-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-indigo-500/25 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-3">Hak Akses Fleksibel</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Tentukan peran pengguna dengan mudah: Superadmin Platform, Owner Toko, Kasir POS, Petugas Gudang, hingga Sales lapangan per cabang.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Hak Akses Fleksibel</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Tentukan peran pengguna dengan mudah: Superadmin Platform, Owner Toko, Kasir POS, Petugas Gudang, hingga Sales lapangan per cabang.
-                    </p>
                 </div>
 
-                <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 transition-all interactive-card reveal-on-scroll">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-chart-pie"></i>
+                <div class="group p-8 rounded-2xl bg-white border border-slate-100 hover:border-purple-200 hover:shadow-2xl hover:shadow-purple-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/5 rounded-full group-hover:bg-purple-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white flex items-center justify-center text-2xl mb-6 shadow-lg shadow-purple-500/25 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-3">Laporan Konsolidasi</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Pantau performa omzet masing-masing toko secara terpisah, atau gabungkan dalam satu laporan eksekutif untuk melihat total pertumbuhan bisnis.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Laporan Konsolidasi</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Pantau performa omzet masing-masing toko secara terpisah, atau gabungkan dalam satu laporan eksekutif untuk melihat total pertumbuhan bisnis.
-                    </p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Section: Fitur Unggulan -->
-    <section id="fitur" class="py-20 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="fitur" class="py-20 bg-slate-50 relative overflow-hidden">
+        <!-- Section Background Accent -->
+        <div class="absolute top-0 right-0 w-72 h-72 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
                 <span class="text-brand-600 text-xs sm:text-sm font-bold uppercase tracking-wider">Fitur Operasional Lengkap</span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 mb-4">
@@ -394,69 +414,93 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 <!-- Feature 1 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-50 text-brand-600 flex items-center justify-center text-lg mb-4">
-                        <i class="fa-solid fa-cash-register"></i>
+                <div class="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-brand-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-500/5 rounded-full group-hover:bg-indigo-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-brand-600 text-white flex items-center justify-center text-xl mb-5 shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-cash-register"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Kasir POS Cepat & Responsif</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Pencarian barang instan, perhitungan diskon per item, uang muka (DP), dan cetak nota kasir rapi yang kompatibel di PC, laptop, maupun tablet.
+                        </p>
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 mb-2">Kasir POS Cepat & Responsif</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Pencarian barang instan, perhitungan diskon per item, uang muka (DP), dan cetak nota kasir rapi yang kompatibel di PC, laptop, maupun tablet.
-                    </p>
                 </div>
 
                 <!-- Feature 2 -->
-                <div id="keunggulan" class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg mb-4">
-                        <i class="fa-solid fa-lock"></i>
+                <div id="keunggulan" class="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full group-hover:bg-emerald-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xl mb-5 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Proteksi Margin (Sistem Anti-Rugi)</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Validasi backend otomatis menolak pemberian diskon yang menembus harga modal. Lindungi keuntungan toko Anda dari kesalahan kasir.
+                        </p>
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 mb-2">Proteksi Margin (Sistem Anti-Rugi)</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Validasi backend otomatis menolak pemberian diskon yang menembus harga modal. Lindungi keuntungan toko Anda dari kesalahan kasir.
-                    </p>
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
-                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg mb-4">
-                        <i class="fa-solid fa-boxes-stacked"></i>
+                <div class="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-500/5 rounded-full group-hover:bg-amber-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center text-xl mb-5 shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Alur Verifikasi Fisik Gudang</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Stok tidak langsung berkurang sebelum tim gudang memverifikasi barang fisik secara nyata. Dilengkapi kunci baris (*lockForUpdate*) anti-selisih.
+                        </p>
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 mb-2">Alur Verifikasi Fisik Gudang</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Stok tidak langsung berkurang sebelum tim gudang memverifikasi barang fisik secara nyata. Dilengkapi kunci baris (*lockForUpdate*) anti-selisih.
-                    </p>
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
-                    <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-lg mb-4">
-                        <i class="fa-solid fa-book-bookmark"></i>
+                <div class="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-sky-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-sky-500/5 rounded-full group-hover:bg-sky-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 text-white flex items-center justify-center text-xl mb-5 shadow-lg shadow-sky-500/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Buku Piutang & Kartu Cicilan</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Lacak riwayat pelanggan yang berhutang, catat cicilan berjalan secara real-time, dan unduh rekap piutang ke Excel dengan mudah.
+                        </p>
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 mb-2">Buku Piutang & Kartu Cicilan</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Lacak riwayat pelanggan yang berhutang, catat cicilan berjalan secara real-time, dan unduh rekap piutang ke Excel dengan mudah.
-                    </p>
                 </div>
 
                 <!-- Feature 5 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
-                    <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg mb-4">
-                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                <div class="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-rose-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-rose-500/5 rounded-full group-hover:bg-rose-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center text-xl mb-5 shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Payroll & Komisi Sales</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Hitung bonus sales otomatis dari transaksi lunas, kelola tunjangan dan potongan karyawan, serta cetak slip gaji resmi satu klik.
+                        </p>
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 mb-2">Payroll & Komisi Sales</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Hitung bonus sales otomatis dari transaksi lunas, kelola tunjangan dan potongan karyawan, serta cetak slip gaji resmi satu klik.
-                    </p>
                 </div>
 
                 <!-- Feature 6 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow interactive-card reveal-on-scroll">
-                    <div class="w-10 h-10 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center text-lg mb-4">
-                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                <div class="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-violet-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-violet-500/5 rounded-full group-hover:bg-violet-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center text-xl mb-5 shadow-lg shadow-violet-500/20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-cloud-arrow-down"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Backup Database Mandiri</h4>
+                        <p class="text-slate-600 text-sm leading-relaxed">
+                            Unduh salinan cadangan SQL seluruh struktur dan isi data toko kapan saja untuk jaminan keamanan data tingkat tinggi.
+                        </p>
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 mb-2">Backup Database Mandiri</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">
-                        Unduh salinan cadangan SQL seluruh struktur dan isi data toko kapan saja untuk jaminan keamanan data tingkat tinggi.
-                    </p>
                 </div>
             </div>
         </div>
@@ -640,6 +684,130 @@
                             <span class="text-[11px] text-slate-400">Respon cepat dalam hitungan jam kerja</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Testimoni Pelanggan -->
+    <section id="testimoni" class="py-20 bg-white border-t border-slate-100 relative overflow-hidden">
+        <!-- Section Background Accent -->
+        <div class="absolute top-10 left-0 w-80 h-80 bg-amber-400/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-10 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+                <span class="text-amber-600 text-xs sm:text-sm font-bold uppercase tracking-wider">Testimoni Pelanggan</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 mb-4">
+                    Dipercaya Pemilik Toko di Seluruh Indonesia
+                </h2>
+                <p class="text-slate-600 text-base sm:text-lg">
+                    Dengarkan langsung pengalaman mereka yang telah menggunakan VxPOS untuk mengelola bisnis retail dan suku cadang.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Testimoni 1 -->
+                <div class="group p-7 rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-100 hover:border-amber-200 hover:shadow-2xl hover:shadow-amber-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-400/5 rounded-full group-hover:bg-amber-400/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <!-- Stars -->
+                        <div class="flex gap-1 mb-4">
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                        </div>
+                        <!-- Quote -->
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6 italic">
+                            "Sejak pakai VxPOS, stok 3 cabang toko saya tidak pernah selisih lagi. Sistem verifikasi gudangnya sangat membantu, kasir dan gudang bisa kerja sinkron tanpa ribut."
+                        </p>
+                        <!-- Profile -->
+                        <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                AH
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-900">Andi Hermawan</p>
+                                <p class="text-xs text-slate-500">Owner, Berkah Jaya Motor — 3 Cabang</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimoni 2 -->
+                <div class="group p-7 rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-100 hover:border-brand-200 hover:shadow-2xl hover:shadow-brand-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-brand-500/5 rounded-full group-hover:bg-brand-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <!-- Stars -->
+                        <div class="flex gap-1 mb-4">
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                        </div>
+                        <!-- Quote -->
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6 italic">
+                            "Fitur anti-rugi benar-benar menyelamatkan bisnis saya. Dulu kasir sering kasih diskon di bawah modal tanpa sadar. Sekarang sistem langsung blokir otomatis, margin aman 100%."
+                        </p>
+                        <!-- Profile -->
+                        <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                SR
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-900">Siti Rahmawati</p>
+                                <p class="text-xs text-slate-500">Manager, Sentosa Parts & Accessories</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimoni 3 -->
+                <div class="group p-7 rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-100 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all interactive-card reveal-on-scroll relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/5 rounded-full group-hover:bg-emerald-500/10 transition-colors"></div>
+                    <div class="relative z-10">
+                        <!-- Stars -->
+                        <div class="flex gap-1 mb-4">
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                            <i class="fa-solid fa-star-half-stroke text-amber-400 text-sm"></i>
+                        </div>
+                        <!-- Quote -->
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6 italic">
+                            "Buku piutang digital di VxPOS sangat rapi. Customer yang nyicil terdata otomatis, slip gaji karyawan tinggal cetak. Satu sistem untuk semua, saya tidak perlu aplikasi lain."
+                        </p>
+                        <!-- Profile -->
+                        <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                BP
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-900">Budi Prasetyo</p>
+                                <p class="text-xs text-slate-500">Owner, Makmur Sparepart — 5 Cabang</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Badge -->
+            <div class="mt-12 text-center reveal-on-scroll">
+                <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-50 border border-slate-200 text-sm text-slate-600">
+                    <div class="flex -space-x-2">
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">AH</div>
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">SR</div>
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">BP</div>
+                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white">+</div>
+                    </div>
+                    <span class="font-semibold">Bergabung bersama <span class="text-brand-600 font-bold">ratusan pemilik toko</span> lainnya</span>
                 </div>
             </div>
         </div>

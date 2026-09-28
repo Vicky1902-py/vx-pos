@@ -4,8 +4,14 @@
     </IfModule>
 
     RewriteEngine On
+    RewriteBase /
 
-    # Arahkan semua request ke folder public/
+    # Jika file atau direktori fisik ada (seperti cek.php, robots.txt), layani langsung
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Arahkan semua request lainnya ke folder public/
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>

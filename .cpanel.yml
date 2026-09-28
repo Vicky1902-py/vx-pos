@@ -4,8 +4,10 @@ deployment:
     - export DEPLOYPATH=${DEPLOYPATH:-$([ -d "$HOME/public_html/erp.vxai.online" ] && echo "$HOME/public_html/erp.vxai.online" || echo "$HOME/public_html")}
     - /bin/cp -rf * $DEPLOYPATH/
     - /bin/cp -rf .htaccess $DEPLOYPATH/
-    - /bin/mkdir -p $DEPLOYPATH/storage/framework/views $DEPLOYPATH/storage/framework/cache $DEPLOYPATH/storage/framework/sessions $DEPLOYPATH/storage/logs $DEPLOYPATH/bootstrap/cache
+    - /bin/mkdir -p $DEPLOYPATH/storage/framework/views $DEPLOYPATH/storage/framework/cache $DEPLOYPATH/storage/framework/sessions $DEPLOYPATH/storage/logs $DEPLOYPATH/bootstrap/cache $DEPLOYPATH/public/uploads/logo $DEPLOYPATH/public/uploads/favicon
     - /bin/chmod -R 755 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
+    - /bin/chmod 644 $DEPLOYPATH/.htaccess $DEPLOYPATH/public/.htaccess || true
+    - [ -f "$DEPLOYPATH/public/uploads/.htaccess" ] && /bin/chmod 644 $DEPLOYPATH/public/uploads/.htaccess || true
     - /bin/cp -n $DEPLOYPATH/.env.example $DEPLOYPATH/.env || true
     - /bin/rm -f $DEPLOYPATH/bootstrap/cache/routes*.php $DEPLOYPATH/bootstrap/cache/config*.php $DEPLOYPATH/bootstrap/cache/services*.php || true
     - /bin/rm -f $DEPLOYPATH/public/uploads/logo/1784947357_logo.jpg || true

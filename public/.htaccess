@@ -23,3 +23,19 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Blokir akses langsung ke file sensitif
+<FilesMatch "(\.env|\.sql|\.log|\.yml|\.yaml|\.json|\.lock|artisan|phpunit)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Blokir seluruh dotfiles tersembunyi
+<IfModule mod_rewrite.c>
+    RewriteRule "(^|/)\.(?!well-known)" - [F]
+</IfModule>

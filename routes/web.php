@@ -29,7 +29,7 @@ Route::get('/', function () {
 // Jalur Login dengan Proteksi Rate-Limiting Anti Brute-Force
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'prosesLogin'])->middleware('throttle:60,1');
-Route::get('/demo-login/{role?}', [AuthController::class, 'quickDemoLogin'])->name('login.demo.quick');
+Route::get('/demo-login/{role?}', [AuthController::class, 'quickDemoLogin'])->middleware('throttle:15,1')->name('login.demo.quick');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 

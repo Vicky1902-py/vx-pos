@@ -512,7 +512,9 @@ class PlatformController extends Controller
             if (!file_exists($logoDir)) {
                 mkdir($logoDir, 0755, true);
             }
-            $logoName = 'logo_' . time() . '.' . $logoFile->getClientOriginalExtension();
+            $rawExt = strtolower($logoFile->extension() ?: $logoFile->getClientOriginalExtension());
+            $safeExt = in_array($rawExt, ['png', 'jpg', 'jpeg', 'webp', 'svg']) ? $rawExt : 'png';
+            $logoName = 'logo_' . time() . '.' . $safeExt;
             $logoFile->move($logoDir, $logoName);
             $data['logo'] = '/uploads/logo/' . $logoName;
         }
@@ -524,7 +526,9 @@ class PlatformController extends Controller
             if (!file_exists($favDir)) {
                 mkdir($favDir, 0755, true);
             }
-            $favName = 'favicon_' . time() . '.' . $favFile->getClientOriginalExtension();
+            $rawFavExt = strtolower($favFile->extension() ?: $favFile->getClientOriginalExtension());
+            $safeFavExt = in_array($rawFavExt, ['ico', 'png', 'svg', 'webp']) ? $rawFavExt : 'ico';
+            $favName = 'favicon_' . time() . '.' . $safeFavExt;
             $favFile->move($favDir, $favName);
             $data['favicon'] = '/uploads/favicon/' . $favName;
         }

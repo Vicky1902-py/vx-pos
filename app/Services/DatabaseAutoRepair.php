@@ -9,35 +9,47 @@ use Illuminate\Database\Schema\Blueprint;
 
 class DatabaseAutoRepair
 {
+    private static bool $isRepairing = false;
+
     /**
      * Jalankan self-healing dan perbaikan otomatis database VxPOS
      * Setiap langkah dijalankan secara terisolasi agar kegagalan parsial tidak menghentikan perbaikan lain
      */
     public static function repair(): void
     {
-        // 1. Pastikan tabel 'cache', 'cache_locks', dan 'sessions' ada
-        try { self::ensureSystemTables(); } catch (\Throwable $e) {}
+        if (self::$isRepairing) {
+            return;
+        }
 
-        // 2. Pastikan tabel 'toko' ada dan berisi default Toko Pusat
-        try { self::ensureTokoTable(); } catch (\Throwable $e) {}
+        self::$isRepairing = true;
 
-        // 3. Pastikan kolom-kolom multi-tenant di tabel 'users' ada
-        try { self::ensureUsersColumns(); } catch (\Throwable $e) {}
+        try {
+            // 1. Pastikan tabel 'cache', 'cache_locks', dan 'sessions' ada
+            try { self::ensureSystemTables(); } catch (\Throwable $e) {}
 
-        // 4. Pastikan kolom 'toko_id' ada di semua tabel operasional
-        try { self::ensureTenantColumns(); } catch (\Throwable $e) {}
+            // 2. Pastikan tabel 'toko' ada dan berisi default Toko Pusat
+            try { self::ensureTokoTable(); } catch (\Throwable $e) {}
 
-        // 4.5 Pastikan kolom baru di tabel operasional ada (migrasi chanada lama)
-        try { self::ensureOperationalColumns(); } catch (\Throwable $e) {}
+            // 3. Pastikan kolom-kolom multi-tenant di tabel 'users' ada
+            try { self::ensureUsersColumns(); } catch (\Throwable $e) {}
 
-        // 5. Pastikan akun Superadmin Utama (vicky & admin) tersedia & aktif
-        try { self::ensureSuperAdminAccounts(); } catch (\Throwable $e) {}
+            // 4. Pastikan kolom 'toko_id' ada di semua tabel operasional
+            try { self::ensureTenantColumns(); } catch (\Throwable $e) {}
 
-        // 6. Sinkronisasi nama default VxPOS & hapus file logo chanada lama
-        try { self::ensureBranding(); } catch (\Throwable $e) {}
+            // 4.5 Pastikan kolom baru di tabel operasional ada (migrasi chanada lama)
+            try { self::ensureOperationalColumns(); } catch (\Throwable $e) {}
 
-        // 7. Pastikan Toko Demo dan Akun Demo (demo / demo123) tersedia & aktif
-        try { \App\Services\DemoStoreService::generate(); } catch (\Throwable $e) {}
+            // 5. Pastikan akun Superadmin Utama (vicky & admin) tersedia & aktif
+            try { self::ensureSuperAdminAccounts(); } catch (\Throwable $e) {}
+
+            // 6. Sinkronisasi nama default VxPOS & hapus file logo chanada lama
+            try { self::ensureBranding(); } catch (\Throwable $e) {}
+
+            // 7. Pastikan Toko Demo dan Akun Demo (demo / demo123) tersedia & aktif
+            try { \App\Services\DemoStoreService::generate(); } catch (\Throwable $e) {}
+        } finally {
+            self::$isRepairing = false;
+        }
     }
 
     /**

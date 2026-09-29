@@ -983,30 +983,185 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-800">
-                <div class="flex items-center gap-3">
-                    @if(!empty($cms->logo))
-                        <img src="{{ asset($cms->logo) }}" alt="{{ $cms->brand_name ?? 'VxPOS' }}" class="h-9 w-auto max-w-[140px] object-contain">
-                    @else
-                        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
-                            <i class="fa-solid fa-bolt-lightning text-sm"></i>
+    <footer class="relative bg-gradient-to-b from-slate-900 via-[#0b0f19] to-[#05070d] text-slate-300 pt-16 pb-12 overflow-hidden border-t border-slate-800">
+        <!-- Top Gradient Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-brand-600 via-indigo-500 via-purple-500 to-amber-400"></div>
+
+        <!-- Ambient Background Glows -->
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- 4-Column Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
+                
+                <!-- Col 1: Brand & Identity (span 5) -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="flex items-center gap-3">
+                        @if(!empty($cms->logo))
+                            <img src="{{ asset($cms->logo) }}" alt="{{ $cms->brand_name ?? 'VxPOS' }}" class="h-10 w-auto max-w-[150px] object-contain">
+                        @else
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 border border-white/20">
+                                <i class="fa-solid fa-bolt-lightning text-lg text-amber-300 filter drop-shadow"></i>
+                            </div>
+                        @endif
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl font-black tracking-tight text-white">{{ $cms->brand_name ?? 'VxPOS' }}</span>
+                                <span class="inline-flex items-center gap-1 text-[9px] font-extrabold uppercase px-2 py-0.5 bg-gradient-to-r from-indigo-500/20 to-brand-500/20 text-indigo-300 rounded-full border border-indigo-500/30">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>PRO Cloud
+                                </span>
+                            </div>
+                            <span class="text-[11px] font-semibold text-slate-400">Multi-Store Enterprise Platform</span>
                         </div>
-                    @endif
-                    <span class="text-xl font-extrabold text-white">{{ $cms->brand_name ?? 'VxPOS' }}</span>
+                    </div>
+
+                    <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
+                        {{ $cms->footer_desc ?? 'Platform kasir POS dan manajemen multi-cabang terpadu. Dilengkapi proteksi margin HPP anti-rugi, alur verifikasi fisik gudang anti-selisih, dan pembukuan kartu piutang otomatis.' }}
+                    </p>
+
+                    <!-- Trust Badges -->
+                    <div class="pt-2 flex flex-wrap gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-semibold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            99.9% Uptime Ready
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-[11px] font-semibold">
+                            <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                            Multi-Tenant Database Isolated
+                        </span>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-500 text-center md:text-right max-w-md">
-                    {{ $cms->footer_desc ?? 'Solusi POS & Manajemen Multi-Toko Modern • Powered by Laravel 11' }}
-                </p>
+
+                <!-- Col 2: Fitur Unggulan (span 2) -->
+                <div class="lg:col-span-2 space-y-3">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1.5 h-3.5 bg-brand-500 rounded-full"></span>
+                        Solusi Fitur
+                    </h4>
+                    <ul class="space-y-2.5 text-xs text-slate-400">
+                        <li>
+                            <a href="#fitur" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-cash-register text-[10px] text-indigo-400"></i>
+                                <span>Kasir POS Cepat</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#keunggulan" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved text-[10px] text-emerald-400"></i>
+                                <span>Sistem Anti-Rugi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#fitur" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-boxes-stacked text-[10px] text-amber-400"></i>
+                                <span>Verifikasi Gudang</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#fitur" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-book-bookmark text-[10px] text-sky-400"></i>
+                                <span>Buku Piutang & DP</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#fitur" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-hand-holding-dollar text-[10px] text-rose-400"></i>
+                                <span>Payroll & Komisi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#multi-toko" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-store text-[10px] text-purple-400"></i>
+                                <span>Multi-Toko Mandiri</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Navigasi Cepat (span 2) -->
+                <div class="lg:col-span-2 space-y-3">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1.5 h-3.5 bg-amber-400 rounded-full"></span>
+                        Akses Cepat
+                    </h4>
+                    <ul class="space-y-2.5 text-xs text-slate-400">
+                        <li>
+                            <a href="{{ route('login') }}" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-store text-[10px] text-brand-400"></i>
+                                <span>Login Toko</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('login.demo.quick', 'admin') }}" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-flask-vial text-[10px] text-amber-400"></i>
+                                <span>Coba Demo 1-Klik</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#pricing" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-tags text-[10px] text-purple-400"></i>
+                                <span>Paket Berlangganan</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#testimoni" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-star text-[10px] text-amber-400"></i>
+                                <span>Testimoni Klien</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#faq" class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                                <i class="fa-solid fa-circle-question text-[10px] text-sky-400"></i>
+                                <span>Tanya Jawab (FAQ)</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Dukungan & Mitra (span 3) -->
+                <div class="lg:col-span-3 space-y-3">
+                    <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1.5 h-3.5 bg-emerald-400 rounded-full"></span>
+                        Konsultasi & Mitra
+                    </h4>
+                    <p class="text-xs text-slate-400">
+                        Perlu implementasi khusus cabang atau pendampingan migrasi database toko Anda?
+                    </p>
+                    
+                    @if(!empty($cms->wa_number))
+                        <a href="{{ $waUrl }}" target="_blank" class="p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 flex items-center gap-3 group transition-all">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] text-slate-400 uppercase font-semibold">WhatsApp Official</p>
+                                <p class="text-xs font-bold text-white truncate">+{{ $cleanWa }}</p>
+                            </div>
+                        </a>
+                    @endif
+
+                    <div class="space-y-1.5 text-xs text-slate-400 pt-1">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-regular fa-envelope text-slate-500 w-4 text-center"></i>
+                            <span class="truncate">{{ $cms->footer_email ?: 'admin@vxpos.id' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-server text-slate-500 w-4 text-center"></i>
+                            <span>Laravel 11 • MySQL Engine</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+
+            <!-- Bottom Bar: Copyright & Security (with extra bottom padding so floating WA button doesn't obscure) -->
+            <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 pb-16 sm:pb-4">
                 <p>&copy; {{ date('Y') }} {{ strip_tags($cms->brand_name ?? 'VxPOS') }} Multi-Store Platform. Hak Cipta by. Vicky Koroh.</p>
-                <div class="flex gap-6">
-                    <a href="{{ route('login') }}" class="hover:text-white transition-colors">Login Toko</a>
-                    <a href="#fitur" class="hover:text-white transition-colors">Fitur</a>
-                    <a href="#pricing" class="hover:text-white transition-colors">Harga</a>
-                    <a href="#konsultasi" class="hover:text-white transition-colors">Konsultasi</a>
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-400 text-[11px]">
+                        <i class="fa-solid fa-code text-brand-400"></i> Engineered for High-Volume Retail & POS
+                    </span>
                 </div>
             </div>
         </div>

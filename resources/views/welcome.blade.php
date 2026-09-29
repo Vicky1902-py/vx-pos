@@ -140,44 +140,171 @@
 <body class="bg-[#fafafa] text-slate-800 font-sans antialiased overflow-x-hidden">
 
     <!-- Header / Navbar -->
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="/" class="flex items-center gap-3 group">
-                @if(!empty($cms->logo))
-                    <img src="{{ asset($cms->logo) }}" alt="{{ $cms->brand_name ?? 'VxPOS' }}" class="h-10 w-auto max-w-[160px] object-contain">
-                @else
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-bolt-lightning text-lg"></i>
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <!-- Top Gradient Accent Line -->
+        <div class="h-[2.5px] w-full bg-gradient-to-r from-brand-600 via-indigo-500 via-purple-500 to-amber-400"></div>
+
+        <div class="bg-white/85 backdrop-blur-xl border-b border-slate-200/70 shadow-xs shadow-slate-900/[0.03]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
+                <!-- Brand Logo -->
+                <a href="/" class="flex items-center gap-3 group shrink-0">
+                    @if(!empty($cms->logo))
+                        <img src="{{ asset($cms->logo) }}" alt="{{ $cms->brand_name ?? 'VxPOS' }}" class="h-10 w-auto max-w-[150px] object-contain group-hover:scale-105 transition-transform">
+                    @else
+                        <div class="relative flex items-center justify-center">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 group-hover:shadow-brand-500/50 transition-all duration-300 border border-white/30">
+                                <i class="fa-solid fa-bolt-lightning text-lg text-amber-300 filter drop-shadow"></i>
+                            </div>
+                            <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-white"></span>
+                            </span>
+                        </div>
+                    @endif
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-brand-700 bg-clip-text text-transparent">{{ $cms->brand_name ?? 'VxPOS' }}</span>
+                            <span class="inline-flex items-center gap-1 text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 bg-gradient-to-r from-brand-50 to-indigo-50 text-brand-700 rounded-full border border-brand-200/70 shadow-2xs">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>PRO
+                            </span>
+                        </div>
+                        <span class="text-[10px] font-semibold text-slate-400 -mt-0.5 tracking-wide hidden sm:block">Multi-Store Enterprise</span>
                     </div>
-                @endif
-                <div>
-                    <span class="text-xl font-extrabold tracking-tight text-slate-900">{{ $cms->brand_name ?? 'VxPOS' }}</span>
-                    <span class="hidden sm:inline-block text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 ml-2 bg-indigo-50 text-brand-600 rounded-full border border-indigo-100">Multi-Store</span>
+                </a>
+
+                <!-- Navigation Links (Desktop) - Capsule Pill Bar with Icons -->
+                <nav class="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/70 shadow-inner backdrop-blur-md">
+                    <!-- Fitur Utama -->
+                    <a href="#fitur" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-brand-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-indigo-50 group-hover:bg-brand-50 text-brand-600 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-cubes-stacked group-hover:scale-110 transition-transform"></i>
+                        </span>
+                        <span>Fitur<span class="hidden xl:inline"> Utama</span></span>
+                    </a>
+
+                    <!-- Multi-Toko -->
+                    <a href="#multi-toko" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-emerald-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-emerald-50 group-hover:bg-emerald-100/70 text-emerald-600 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-store group-hover:scale-110 transition-transform"></i>
+                        </span>
+                        <span>Multi-Toko</span>
+                    </a>
+
+                    <!-- Anti-Rugi -->
+                    <a href="#keunggulan" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-rose-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-rose-50 group-hover:bg-rose-100/70 text-rose-600 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-shield-halved group-hover:scale-110 transition-transform"></i>
+                        </span>
+                        <span>Anti-Rugi</span>
+                    </a>
+
+                    <!-- Paket Harga -->
+                    <a href="#pricing" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-purple-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-purple-50 group-hover:bg-purple-100/70 text-purple-600 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-tags group-hover:scale-110 transition-transform"></i>
+                        </span>
+                        <span>Harga</span>
+                    </a>
+
+                    <!-- Konsultasi -->
+                    <a href="#konsultasi" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-teal-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-teal-50 group-hover:bg-teal-100/70 text-teal-600 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-headset group-hover:scale-110 transition-transform"></i>
+                        </span>
+                        <span>Konsultasi</span>
+                    </a>
+
+                    <!-- Testimoni -->
+                    <a href="#testimoni" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-amber-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-amber-50 group-hover:bg-amber-100/70 text-amber-500 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-star group-hover:rotate-12 transition-transform"></i>
+                        </span>
+                        <span>Testimoni</span>
+                    </a>
+
+                    <!-- FAQ -->
+                    <a href="#faq" class="group flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs xl:text-[13px] font-semibold text-slate-600 hover:text-sky-600 hover:bg-white hover:shadow-xs transition-all whitespace-nowrap">
+                        <span class="w-5 h-5 rounded-lg bg-sky-50 group-hover:bg-sky-100/70 text-sky-600 flex items-center justify-center text-[10px] transition-colors">
+                            <i class="fa-solid fa-circle-question group-hover:scale-110 transition-transform"></i>
+                        </span>
+                        <span>FAQ</span>
+                    </a>
+                </nav>
+
+                <!-- Action Buttons (Right) -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <!-- Coba Demo Button -->
+                    <a href="{{ route('login.demo.quick', 'admin') }}" class="group relative hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-amber-950 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-400 hover:to-amber-500 shadow-md shadow-amber-400/25 border border-amber-300/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-amber-400/35 overflow-hidden whitespace-nowrap btn-shimmer">
+                        <span class="w-5 h-5 rounded-md bg-amber-500/30 flex items-center justify-center text-amber-950 group-hover:rotate-12 transition-transform">
+                            <i class="fa-solid fa-flask-vial text-[11px]"></i>
+                        </span>
+                        <span>Coba Demo</span>
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-white/70 text-amber-950 shadow-2xs">1-Klik</span>
+                    </a>
+
+                    <!-- Masuk Toko Button -->
+                    <a href="{{ route('login') }}" class="group inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-slate-900 via-brand-700 to-slate-900 hover:from-brand-600 hover:via-indigo-600 hover:to-brand-700 shadow-md shadow-brand-600/20 hover:shadow-brand-600/40 border border-slate-700/30 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
+                        <i class="fa-solid fa-right-to-bracket text-xs text-brand-300 group-hover:translate-x-0.5 transition-transform"></i>
+                        <span>Masuk Toko</span>
+                    </a>
+
+                    <!-- Mobile Menu Hamburger Button -->
+                    <button id="mobileMenuBtn" type="button" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm transition-colors focus:outline-none border border-slate-200/80" aria-label="Toggle Menu">
+                        <i id="mobileMenuIcon" class="fa-solid fa-bars"></i>
+                    </button>
                 </div>
-            </a>
+            </div>
 
-            <!-- Navigation Links (Desktop) -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-                <a href="#fitur" class="hover:text-brand-600 transition-colors">Fitur Utama</a>
-                <a href="#multi-toko" class="hover:text-brand-600 transition-colors">Multi-Toko</a>
-                <a href="#keunggulan" class="hover:text-brand-600 transition-colors">Sistem Anti-Rugi</a>
-                <a href="#pricing" class="hover:text-brand-600 transition-colors">Paket Harga</a>
-                <a href="#konsultasi" class="hover:text-brand-600 transition-colors">Konsultasi</a>
-                <a href="#testimoni" class="hover:text-brand-600 transition-colors">Testimoni</a>
-                <a href="#faq" class="hover:text-brand-600 transition-colors">FAQ</a>
-            </nav>
-
-            <!-- Action Button -->
-            <div class="flex items-center gap-3">
-                <a href="{{ route('login.demo.quick', 'admin') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 transition-all border border-amber-200">
-                    <i class="fa-solid fa-flask-vial"></i>
-                    <span>Coba Demo</span>
-                </a>
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-600/25 hover:shadow-brand-600/40 hover:-translate-y-0.5 transition-all">
-                    <span>Masuk ke Toko</span>
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </a>
+            <!-- Mobile Menu Dropdown -->
+            <div id="mobileMenuDropdown" class="hidden lg:hidden bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl px-4 py-4 space-y-3 transition-all">
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="#fitur" class="mobile-nav-link flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-brand-600 text-xs font-semibold transition-all">
+                        <span class="w-7 h-7 rounded-lg bg-indigo-100 text-brand-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-cubes-stacked"></i>
+                        </span>
+                        <span>Fitur Utama</span>
+                    </a>
+                    <a href="#multi-toko" class="mobile-nav-link flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 text-xs font-semibold transition-all">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-store"></i>
+                        </span>
+                        <span>Multi-Toko</span>
+                    </a>
+                    <a href="#keunggulan" class="mobile-nav-link flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-700 hover:text-rose-600 text-xs font-semibold transition-all">
+                        <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </span>
+                        <span>Sistem Anti-Rugi</span>
+                    </a>
+                    <a href="#pricing" class="mobile-nav-link flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-600 text-xs font-semibold transition-all">
+                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-tags"></i>
+                        </span>
+                        <span>Paket Harga</span>
+                    </a>
+                    <a href="#konsultasi" class="mobile-nav-link flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-600 text-xs font-semibold transition-all">
+                        <span class="w-7 h-7 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-headset"></i>
+                        </span>
+                        <span>Konsultasi</span>
+                    </a>
+                    <a href="#testimoni" class="mobile-nav-link flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-600 text-xs font-semibold transition-all">
+                        <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-star"></i>
+                        </span>
+                        <span>Testimoni</span>
+                    </a>
+                </div>
+                <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                    <a href="{{ route('login.demo.quick', 'admin') }}" class="w-full py-2.5 px-4 rounded-xl text-center text-xs font-bold text-amber-950 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 flex items-center justify-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-flask-vial"></i>
+                        <span>Coba Demo 1-Klik</span>
+                    </a>
+                    <a href="{{ route('login') }}" class="w-full py-2.5 px-4 rounded-xl text-center text-xs font-bold text-white bg-slate-900 flex items-center justify-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Masuk ke Toko</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -1121,6 +1248,38 @@
                         liveToast.style.transform = 'translateY(0)';
                     }, 400);
                 }, 3800);
+            }
+
+            // 5. Mobile Menu Drawer Toggle
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenuDropdown');
+            const mobileIcon = document.getElementById('mobileMenuIcon');
+            if (mobileBtn && mobileMenu) {
+                mobileBtn.addEventListener('click', () => {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        if (mobileIcon) {
+                            mobileIcon.classList.remove('fa-bars');
+                            mobileIcon.classList.add('fa-xmark');
+                        }
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        if (mobileIcon) {
+                            mobileIcon.classList.remove('fa-xmark');
+                            mobileIcon.classList.add('fa-bars');
+                        }
+                    }
+                });
+                document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        if (mobileIcon) {
+                            mobileIcon.classList.remove('fa-xmark');
+                            mobileIcon.classList.add('fa-bars');
+                        }
+                    });
+                });
             }
         })();
     </script>
